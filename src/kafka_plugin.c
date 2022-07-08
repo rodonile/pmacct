@@ -35,6 +35,8 @@
 /* Functions */
 void kafka_plugin(int pipe_fd, struct configuration *cfgptr, void *ptr)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct pkt_data *data;
   struct ports_table pt;
   struct protos_table prt, tost;
@@ -203,9 +205,16 @@ void kafka_plugin(int pipe_fd, struct configuration *cfgptr, void *ptr)
   if (!config.sql_table)
     config.sql_table = default_kafka_topic;
 
+  UWE("( %s/%s ): before p_kafka_init_host_struct,"
+      " config.kafka_config_file \"%s\"\n",
+      config.name, config.type,
+      config.kafka_config_file ? config.kafka_config_file : "null");
   p_kafka_init_host_struct(&kafkap_kafka_host);
 
 #if defined(WITH_AVRO) && defined(WITH_SERDES)
+  UWE("( %s/%s ): before checking config.kafka_avro_schema_registry \"%s\"",
+      config.name, config.type,
+      config.kafka_avro_schema_registry ? config.kafka_avro_schema_registry : "null");
   if (config.kafka_avro_schema_registry) {
     if (strchr(config.sql_table, '$')) {
       Log(LOG_ERR, "ERROR ( %s/%s ): dynamic 'kafka_topic' is not compatible with 'avro_schema_registry'. Exiting.\n",
@@ -225,6 +234,11 @@ void kafka_plugin(int pipe_fd, struct configuration *cfgptr, void *ptr)
       compose_avro_schema_registry_name_2(config.sql_table, FALSE,
                                           p_avro_acct_close_schema, "acct", "close",
                                           config.kafka_avro_schema_registry);
+    UWE("( %s/%s ): schema ids from registry \"%d/%d/%d\"",
+        config.name, config.type,
+        serdes_schema_id(kafkap_kafka_host.sd_schema[AVRO_ACCT_DATA_SID]),
+        serdes_schema_id(kafkap_kafka_host.sd_schema[AVRO_ACCT_INIT_SID]),
+        serdes_schema_id(kafkap_kafka_host.sd_schema[AVRO_ACCT_CLOSE_SID]));
 
     if (!kafkap_kafka_host.sd_schema[AVRO_ACCT_DATA_SID] ||
         !kafkap_kafka_host.sd_schema[AVRO_ACCT_INIT_SID] ||
@@ -377,6 +391,8 @@ void kafka_plugin(int pipe_fd, struct configuration *cfgptr, void *ptr)
 
 void kafka_cache_purge(struct chained_cache *queue[], int index, int safe_action)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct pkt_primitives *data = NULL;
   struct pkt_bgp_primitives *pbgp = NULL;
   struct pkt_nat_primitives *pnat = NULL;
@@ -427,6 +443,8 @@ void kafka_cache_purge(struct chained_cache *queue[], int index, int safe_action
 
   if (config.amqp_routing_key_rr) orig_kafka_topic = config.sql_table;
 
+  UWE("( %s/%s ): set kafka topic_rr \"%d\" (config.amqp_routing_key_rr)",
+      config.name, config.type, config.amqp_routing_key_rr);
   p_kafka_init_topic_rr(&kafkap_kafka_host);
   p_kafka_set_topic_rr(&kafkap_kafka_host, config.amqp_routing_key_rr);
 
@@ -445,12 +463,17 @@ void kafka_cache_purge(struct chained_cache *queue[], int index, int safe_action
   memset(&dummy_data, 0, sizeof(dummy_data));
   memset(tmpbuf, 0, sizeof(tmpbuf));
 
+  UWE("( %s/%s ): set kafka broker \"%s:%d\" (config.sql_host, config.kafka_broker_port)",
+      config.name, config.type,
+      config.sql_host ? config.sql_host : "null", config.kafka_broker_port);
   p_kafka_connect_to_produce(&kafkap_kafka_host);
   p_kafka_set_broker(&kafkap_kafka_host, config.sql_host, config.kafka_broker_port);
 
   if (config.kafka_partition_key && strchr(config.kafka_partition_key, '$')) dyn_partition_key = TRUE;
   else dyn_partition_key = FALSE;
 
+  UWE("( %s/%s ): set kafka topic \"%s\" (config.sql_table)",
+      config.name, config.type, config.sql_table ? config.sql_table : "null");
   if (!is_topic_dyn && !config.amqp_routing_key_rr) p_kafka_set_topic(&kafkap_kafka_host, config.sql_table);
 
   if (config.kafka_partition_dynamic && !config.kafka_partition_key) {
@@ -530,6 +553,8 @@ void kafka_cache_purge(struct chained_cache *queue[], int index, int safe_action
 #endif
   }
 
+  UWE("( %s/%s ): before checking config.print_markers \"%d\"",
+      config.name, config.type, config.print_markers);
   if (config.print_markers) {
     if (config.message_broker_output & PRINT_OUTPUT_JSON) {
       void *json_obj = NULL;
@@ -560,6 +585,8 @@ void kafka_cache_purge(struct chained_cache *queue[], int index, int safe_action
 	else {
 	  void *p_avro_local_buf = NULL;
 
+          UWE("( %s/%s ): before serdes_schema_serialize_avro inside print_markers",
+              config.name, config.type);
 	  if (serdes_schema_serialize_avro(kafkap_kafka_host.sd_schema[AVRO_ACCT_INIT_SID], &p_avro_value, &p_avro_local_buf,
 					   &p_avro_len, kafkap_kafka_host.errstr, sizeof(kafkap_kafka_host.errstr))) {
 	    Log(LOG_ERR, "ERROR ( %s/%s ): kafka_cache_purge(): serdes_schema_serialize_avro() failed for %s: %s\n", config.name, config.type, "acct_init", kafkap_kafka_host.errstr);
@@ -584,10 +611,14 @@ void kafka_cache_purge(struct chained_cache *queue[], int index, int safe_action
 
       avro_value_decref(&p_avro_value);
       avro_value_iface_decref(p_avro_iface);
+      UWE("( %s/%s ): after producing kafka/avro data inside print_markers",
+          config.name, config.type);
 #endif
     }
   }
 
+  UWE("( %s/%s ): before index loop \"%d\"",
+      config.name, config.type, index);
   for (j = 0; j < index; j++) {
     char *json_str = NULL;
 
@@ -614,6 +645,8 @@ void kafka_cache_purge(struct chained_cache *queue[], int index, int safe_action
 
     if (queue[j]->valid == PRINT_CACHE_FREE) continue;
 
+    UWE("( %s/%s ): before checking dyn_partition_key \"%d\"",
+        config.name, config.type, dyn_partition_key);
     if (dyn_partition_key) {
       prim_ptrs.data = &dummy_data;
       primptrs_set_all_from_chained_cache(&prim_ptrs, queue[j]);
@@ -622,11 +655,15 @@ void kafka_cache_purge(struct chained_cache *queue[], int index, int safe_action
       p_kafka_set_key(&kafkap_kafka_host, elem_part_key, strlen(elem_part_key));
     }
 
+    UWE("( %s/%s ): config.message_broker_output \"0x%02x\"",
+        config.name, config.type, config.message_broker_output);
     if (config.message_broker_output & PRINT_OUTPUT_JSON) {
 #ifdef WITH_JANSSON
       json_t *json_obj = json_object();
       int idx;
 
+      UWE("( %s/%s ): inside config.message_broker_output json",
+          config.name, config.type);
       for (idx = 0; idx < N_PRIMITIVES && cjhandler[idx]; idx++) cjhandler[idx](json_obj, queue[j]);
       add_writer_name_and_pid_json(json_obj, &writer_id_tokens);
 
@@ -636,6 +673,7 @@ void kafka_cache_purge(struct chained_cache *queue[], int index, int safe_action
     else if ((config.message_broker_output & PRINT_OUTPUT_AVRO_BIN) ||
 	     (config.message_broker_output & PRINT_OUTPUT_AVRO_JSON)) {
 #ifdef WITH_AVRO
+      UWE("( %s/%s ): produce avro data", config.name, config.type);
       avro_value_iface_t *p_avro_iface = avro_generic_class_from_schema(p_avro_acct_schema);
       avro_value_t p_avro_value = compose_avro_acct_data(config.what_to_count, config.what_to_count_2,
 			   config.what_to_count_3, queue[j]->flow_type, &queue[j]->primitives, pbgp,
@@ -647,6 +685,8 @@ void kafka_cache_purge(struct chained_cache *queue[], int index, int safe_action
       if (config.message_broker_output & PRINT_OUTPUT_AVRO_BIN) {
 	size_t p_avro_value_size;
 
+        UWE("( %s/%s ): inside config.message_broker_output avro/bin",
+            config.name, config.type);
         avro_value_sizeof(&p_avro_value, &p_avro_value_size);
 
 	if (!config.kafka_avro_schema_registry) {
@@ -672,12 +712,16 @@ void kafka_cache_purge(struct chained_cache *queue[], int index, int safe_action
 	else {
 	  void *p_avro_local_buf = NULL;
 
+          UWE("( %s/%s ): inside config.kafka_avro_schema_registry",
+              config.name, config.type);
 	  p_avro_len = 0;
 	  if (p_avro_buf) {
 	    free(p_avro_buf);
 	    p_avro_buf = NULL;
 	  }
 
+          UWE("( %s/%s ): before serdes_schema_serialize_avro inside config.kafka_avro_schema_registry",
+              config.name, config.type);
 	  if (serdes_schema_serialize_avro(kafkap_kafka_host.sd_schema[AVRO_ACCT_DATA_SID], &p_avro_value, &p_avro_local_buf,
 					   &p_avro_len, kafkap_kafka_host.errstr, sizeof(kafkap_kafka_host.errstr))) {
 	    Log(LOG_ERR, "ERROR ( %s/%s ): kafka_cache_purge(): serdes_schema_serialize_avro() failed for %s: %s\n", config.name, config.type, "acct_data", kafkap_kafka_host.errstr);
@@ -693,6 +737,8 @@ void kafka_cache_purge(struct chained_cache *queue[], int index, int safe_action
       else if (config.message_broker_output & PRINT_OUTPUT_AVRO_JSON) {
 	char *p_avro_local_buf = write_avro_json_record_to_buf(p_avro_value);
 
+        UWE("( %s/%s ): inside config.message_broker_output avro/json",
+            config.name, config.type);
 	if (p_avro_local_buf) {
 	  size_t p_avro_locbuf_len = strlen(p_avro_local_buf);
 
@@ -723,6 +769,8 @@ void kafka_cache_purge(struct chained_cache *queue[], int index, int safe_action
     if (config.message_broker_output & PRINT_OUTPUT_JSON) {
       char *tmp_str = NULL;
 
+      UWE("( %s/%s ): inside config.message_broker_output json",
+          config.name, config.type);
       if (json_str && config.sql_multi_values) {
         int json_strlen = (strlen(json_str) ? (strlen(json_str) + 1) : 0);
 
@@ -803,10 +851,14 @@ void kafka_cache_purge(struct chained_cache *queue[], int index, int safe_action
         }
 
 	if (config.message_broker_output & PRINT_OUTPUT_AVRO_BIN) { 
+          UWE("( %s/%s ): inside config.message_broker_output avro/bin",
+              config.name, config.type);
 	  ret = p_kafka_produce_data(&kafkap_kafka_host, p_avro_buf, p_avro_len);
 	  if (!config.kafka_avro_schema_registry) avro_writer_reset(p_avro_writer);
 	}
 	else if (config.message_broker_output & PRINT_OUTPUT_AVRO_JSON) {
+          UWE("( %s/%s ): inside config.message_broker_output avro/json",
+              config.name, config.type);
 	  ret = p_kafka_produce_data(&kafkap_kafka_host, p_avro_buf, strlen(p_avro_buf));
 	  memset(p_avro_buf, 0, config.avro_buffer_size);
         }
@@ -822,6 +874,8 @@ void kafka_cache_purge(struct chained_cache *queue[], int index, int safe_action
     }
   }
 
+  UWE("( %s/%s ): before checking config.sql_multi_values \"%d\"",
+      config.name, config.type, config.sql_multi_values);
   if (config.sql_multi_values) {
     if (config.message_broker_output & PRINT_OUTPUT_JSON) {
       if (json_buf && json_buf_off) {
@@ -854,6 +908,8 @@ void kafka_cache_purge(struct chained_cache *queue[], int index, int safe_action
 
   duration = time(NULL)-start;
 
+  UWE("( %s/%s ): before checking config.print_markers \"%d\"",
+      config.name, config.type, config.print_markers);
   if (config.print_markers) {
     if (config.message_broker_output & PRINT_OUTPUT_JSON) {
       void *json_obj = NULL;
@@ -914,6 +970,7 @@ void kafka_cache_purge(struct chained_cache *queue[], int index, int safe_action
     }
   }
 
+  UWE("( %s/%s ): before kafka close", config.name, config.type);
   p_kafka_close(&kafkap_kafka_host, FALSE);
 
   Log(LOG_INFO, "INFO ( %s/%s ): *** Purging cache - END (PID: %u, QN: %u/%u, ET: %lu) ***\n",
@@ -928,4 +985,6 @@ void kafka_cache_purge(struct chained_cache *queue[], int index, int safe_action
 #ifdef WITH_AVRO
   if (p_avro_buf) free(p_avro_buf);
 #endif
+
+  UWE("( %s/%s ): end", config.name, config.type);
 }
