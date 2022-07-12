@@ -20,6 +20,7 @@
 */
 
 /* includes */
+#include <sys/syscall.h>
 #include "pmacct.h"
 
 /* Global variables */
@@ -58,7 +59,8 @@ void Log(short int level, char *msg, ...)
       strftime(timebuf, SRVBUFLEN, "%Y-%m-%dT%H:%M:%S", tmnow);
       append_rfc3339_timezone(timebuf, SRVBUFLEN, tmnow);
 
-      fprintf(config.logfile_fd, "%s ", timebuf);
+      fprintf(config.logfile_fd, "%s %d/%ld ",
+              timebuf, getpid(), syscall(SYS_gettid));
       va_start(ap, msg);
       vfprintf(config.logfile_fd, msg, ap);
       va_end(ap);
