@@ -26,6 +26,10 @@
 #include <stdarg.h>
 #include <sys/stat.h>
 
+#define UWE(format, ...) \
+  Log(LOG_INFO, "UWE %s:%d %s " format "\n", \
+      __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
+
 /* defines */
 #define LOGSTRLEN LONGSRVBUFLEN 
 
