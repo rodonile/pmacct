@@ -31,6 +31,8 @@ struct p_zmq_host telemetry_zmq_host;
 /* Functions */
 void p_zmq_set_address(struct p_zmq_host *zmq_host, char *address)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   char proto[] = "://", tcp_proto[] = "tcp://", inproc_proto[] = "inproc://";
 
   if (zmq_host && address) {
@@ -55,11 +57,15 @@ void p_zmq_set_address(struct p_zmq_host *zmq_host, char *address)
 
 void p_zmq_set_topic(struct p_zmq_host *zmq_host, u_int8_t topic)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   if (zmq_host) zmq_host->topic = topic;
 }
 
 void p_zmq_set_retry_timeout(struct p_zmq_host *zmq_host, int tout)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   int ret;
 
   if (zmq_host) {
@@ -74,6 +80,8 @@ void p_zmq_set_retry_timeout(struct p_zmq_host *zmq_host, int tout)
 
 void p_zmq_set_username(struct p_zmq_host *zmq_host, char *username)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   if (zmq_host) {
     if (strlen(username) >= sizeof(zmq_host->zap.username)) {
       Log(LOG_ERR, "ERROR ( %s ): p_zmq_set_username(): username '%s' too long (maximum %lu chars). Exiting.\n",
@@ -86,6 +94,8 @@ void p_zmq_set_username(struct p_zmq_host *zmq_host, char *username)
 
 void p_zmq_set_password(struct p_zmq_host *zmq_host, char *password)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   if (zmq_host) {
     if (strlen(password) >= sizeof(zmq_host->zap.password)) {
       Log(LOG_ERR, "ERROR ( %s ): p_zmq_set_password(): password '%s' too long (maximum %lu chars). Exiting.\n",
@@ -98,26 +108,36 @@ void p_zmq_set_password(struct p_zmq_host *zmq_host, char *password)
 
 void p_zmq_set_random_username(struct p_zmq_host *zmq_host)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   if (zmq_host) generate_random_string(zmq_host->zap.username, (sizeof(zmq_host->zap.username) - 1));
 }
 
 void p_zmq_set_random_password(struct p_zmq_host *zmq_host)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   if (zmq_host) generate_random_string(zmq_host->zap.password, (sizeof(zmq_host->zap.password) - 1));
 }
 
 void p_zmq_set_hwm(struct p_zmq_host *zmq_host, int hwm)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   if (zmq_host) zmq_host->hwm = hwm;  
 }
 
 void p_zmq_set_log_id(struct p_zmq_host *zmq_host, char *log_id)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   if (zmq_host) strlcpy(zmq_host->log_id, log_id, sizeof(zmq_host->log_id));
 }
 
 char *p_zmq_get_address(struct p_zmq_host *zmq_host)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   if (zmq_host) {
     if (strlen(zmq_host->sock.str)) return zmq_host->sock.str;
     else if (strlen(zmq_host->sock_inproc.str)) return zmq_host->sock_inproc.str;
@@ -128,6 +148,8 @@ char *p_zmq_get_address(struct p_zmq_host *zmq_host)
 
 u_int8_t p_zmq_get_topic(struct p_zmq_host *zmq_host)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   if (zmq_host) return zmq_host->topic;
 
   return 0;
@@ -135,6 +157,8 @@ u_int8_t p_zmq_get_topic(struct p_zmq_host *zmq_host)
 
 void *p_zmq_get_sock(struct p_zmq_host *zmq_host)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   if (zmq_host) return zmq_host->sock.obj; 
 
   return NULL;
@@ -142,6 +166,8 @@ void *p_zmq_get_sock(struct p_zmq_host *zmq_host)
 
 int p_zmq_get_fd(struct p_zmq_host *zmq_host)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   int fd = ERR;
   size_t len = sizeof(fd);
 
@@ -154,6 +180,8 @@ int p_zmq_get_fd(struct p_zmq_host *zmq_host)
 
 void p_zmq_init_push(struct p_zmq_host *zmq_host, char *address)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   if (zmq_host) {
     memset(zmq_host, 0, sizeof(struct p_zmq_host));
     p_zmq_set_address(zmq_host, address);
@@ -162,6 +190,8 @@ void p_zmq_init_push(struct p_zmq_host *zmq_host, char *address)
 
 void p_zmq_init_pub(struct p_zmq_host *zmq_host, char *address, u_int8_t topic)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   if (zmq_host) {
     memset(zmq_host, 0, sizeof(struct p_zmq_host));
     p_zmq_set_address(zmq_host, address);
@@ -171,6 +201,8 @@ void p_zmq_init_pub(struct p_zmq_host *zmq_host, char *address, u_int8_t topic)
 
 void p_zmq_plugin_pipe_init_core(struct p_zmq_host *zmq_host, u_int8_t plugin_id, char *username, char *password)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   if (zmq_host) {
     p_zmq_init_pub(zmq_host, NULL, plugin_id);
 
@@ -184,16 +216,22 @@ void p_zmq_plugin_pipe_init_core(struct p_zmq_host *zmq_host, u_int8_t plugin_id
 
 void p_zmq_init_sub(struct p_zmq_host *zmq_host)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   p_zmq_plugin_pipe_init_plugin(zmq_host);
 }
 
 void p_zmq_init_pull(struct p_zmq_host *zmq_host)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   p_zmq_plugin_pipe_init_plugin(zmq_host);
 }
 
 void p_zmq_plugin_pipe_init_plugin(struct p_zmq_host *zmq_host)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   if (zmq_host) {
 
 /*
@@ -245,6 +283,8 @@ int p_zmq_plugin_pipe_set_profile(struct configuration *cfg, char *value)
 
 int p_zmq_bind(struct p_zmq_host *zmq_host)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   int ret = 0, as_server = TRUE;
   size_t sock_strlen;
 
@@ -293,6 +333,8 @@ int p_zmq_bind(struct p_zmq_host *zmq_host)
 
 int p_zmq_connect(struct p_zmq_host *zmq_host)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   int ret = 0;
 
   if (strlen(zmq_host->zap.username) && strlen(zmq_host->zap.password)) {
@@ -335,31 +377,43 @@ int p_zmq_connect(struct p_zmq_host *zmq_host)
 
 void p_zmq_ctx_setup(struct p_zmq_host *zmq_host)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   if (!zmq_host->ctx) zmq_host->ctx = zmq_ctx_new();
 }
 
 void p_zmq_zap_setup(struct p_zmq_host *zmq_host)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   zmq_host->zap.thread = zmq_threadstart(&p_zmq_zap_handler, zmq_host);
 }
 
 void p_zmq_pub_setup(struct p_zmq_host *zmq_host)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   p_zmq_send_setup(zmq_host, ZMQ_PUB, FALSE);
 }
 
 void p_zmq_push_setup(struct p_zmq_host *zmq_host)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   p_zmq_send_setup(zmq_host, ZMQ_PUSH, FALSE);
 }
 
 void p_zmq_push_connect_setup(struct p_zmq_host *zmq_host)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   p_zmq_send_setup(zmq_host, ZMQ_PUSH, TRUE);
 }
 
 void p_zmq_send_setup(struct p_zmq_host *zmq_host, int type, int do_connect)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   int ret, only_one = 1;
   void *sock;
 
@@ -419,21 +473,29 @@ void p_zmq_send_setup(struct p_zmq_host *zmq_host, int type, int do_connect)
 
 void p_zmq_sub_setup(struct p_zmq_host *zmq_host)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   p_zmq_recv_setup(zmq_host, ZMQ_SUB, FALSE);
 }
 
 void p_zmq_pull_setup(struct p_zmq_host *zmq_host)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   p_zmq_recv_setup(zmq_host, ZMQ_PULL, FALSE);
 }
 
 void p_zmq_pull_bind_setup(struct p_zmq_host *zmq_host)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   p_zmq_recv_setup(zmq_host, ZMQ_PULL, TRUE);
 }
 
 void p_zmq_recv_setup(struct p_zmq_host *zmq_host, int type, int do_bind)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   int ret;
   void *sock;
 
@@ -497,6 +559,8 @@ void p_zmq_recv_setup(struct p_zmq_host *zmq_host, int type, int do_bind)
 
 int p_zmq_topic_send(struct p_zmq_host *zmq_host, void *buf, u_int64_t len)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   int ret;
 
   ret = zmq_send(zmq_host->sock.obj, &zmq_host->topic, sizeof(zmq_host->topic), ZMQ_SNDMORE);
@@ -518,6 +582,8 @@ int p_zmq_topic_send(struct p_zmq_host *zmq_host, void *buf, u_int64_t len)
 
 int p_zmq_recv_poll(struct p_zmq_sock *sock, int timeout)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   zmq_pollitem_t item[1];
   void *s;
 
@@ -532,6 +598,8 @@ int p_zmq_recv_poll(struct p_zmq_sock *sock, int timeout)
 
 int p_zmq_topic_recv(struct p_zmq_host *zmq_host, void *buf, u_int64_t len)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   int ret = 0, events;
   size_t elen = sizeof(events);
   u_int8_t topic, retries = 0;
@@ -577,6 +645,8 @@ int p_zmq_topic_recv(struct p_zmq_host *zmq_host, void *buf, u_int64_t len)
 
 char *p_zmq_recv_str(struct p_zmq_sock *sock)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   char buf[SRVBUFLEN];
   int len;
   void *s;
@@ -592,6 +662,8 @@ char *p_zmq_recv_str(struct p_zmq_sock *sock)
 
 int p_zmq_send_str(struct p_zmq_sock *sock, char *buf)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   int len;
   void *s;
 
@@ -605,6 +677,8 @@ int p_zmq_send_str(struct p_zmq_sock *sock, char *buf)
 
 int p_zmq_sendmore_str(struct p_zmq_sock *sock, char *buf)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   int len;
   void *s;
 
@@ -618,6 +692,8 @@ int p_zmq_sendmore_str(struct p_zmq_sock *sock, char *buf)
 
 int p_zmq_recv_bin(struct p_zmq_sock *sock, void *buf, size_t len)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   int rcvlen;
   void *s;
 
@@ -631,6 +707,8 @@ int p_zmq_recv_bin(struct p_zmq_sock *sock, void *buf, size_t len)
 
 int p_zmq_send_bin(struct p_zmq_sock *sock, void *buf, size_t len, int nonblock)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   int sndlen;
   void *s;
 
@@ -645,6 +723,8 @@ int p_zmq_send_bin(struct p_zmq_sock *sock, void *buf, size_t len, int nonblock)
 
 int p_zmq_sendmore_bin(struct p_zmq_sock *sock, void *buf, size_t len, int nonblock)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   int sndlen;
   void *s;
 
@@ -659,6 +739,8 @@ int p_zmq_sendmore_bin(struct p_zmq_sock *sock, void *buf, size_t len, int nonbl
 
 void p_zmq_zap_handler(void *zh)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct p_zmq_host *zmq_host = (struct p_zmq_host *) zh;
   struct p_zmq_sock zmq_sock;
   int ret;
@@ -739,6 +821,8 @@ void p_zmq_zap_handler(void *zh)
 
 void p_zmq_router_setup(struct p_zmq_host *zmq_host, char *host, int port)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   char server_str[SHORTBUFLEN];
   int ret, as_server = TRUE;
 
@@ -774,6 +858,8 @@ void p_zmq_router_setup(struct p_zmq_host *zmq_host, char *host, int port)
 
 void p_zmq_dealer_inproc_setup(struct p_zmq_host *zmq_host)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   int ret;
 
   if (!zmq_host->ctx) zmq_host->ctx = zmq_ctx_new();
@@ -795,6 +881,8 @@ void p_zmq_dealer_inproc_setup(struct p_zmq_host *zmq_host)
 
 void p_zmq_proxy_setup(struct p_zmq_host *zmq_host)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   int ret;
 
   ret = zmq_proxy(zmq_host->sock.obj, zmq_host->sock_inproc.obj, NULL);
@@ -807,6 +895,8 @@ void p_zmq_proxy_setup(struct p_zmq_host *zmq_host)
 
 void p_zmq_router_backend_setup(struct p_zmq_host *zmq_host, int thread_nbr)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   int idx;
 
   p_zmq_dealer_inproc_setup(zmq_host);
@@ -821,6 +911,8 @@ void p_zmq_router_backend_setup(struct p_zmq_host *zmq_host, int thread_nbr)
 
 void p_zmq_router_worker(void *zh)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct p_zmq_host *zmq_host = (struct p_zmq_host *) zh;
   struct p_zmq_sock sock;
   int ret;
@@ -847,6 +939,8 @@ void p_zmq_router_worker(void *zh)
 
 void p_zmq_close(struct p_zmq_host *zmq_host)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   p_zmq_plugin_pipe_init_plugin(zmq_host);
 }
 
