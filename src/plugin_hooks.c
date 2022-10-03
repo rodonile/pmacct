@@ -37,6 +37,8 @@
    size of the shared memory area */
 void load_plugins(struct plugin_requests *req)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   u_int64_t buf_pipe_ratio_sz = 0, pipe_idx = 0;
   int snd_buflen = 0, rcv_buflen = 0, socklen = 0, target_buflen = 0;
 
@@ -59,6 +61,10 @@ void load_plugins(struct plugin_requests *req)
 #endif
 
   while (list) {
+
+    UWE("( %s/%s ): plugin \"%s/%s\" (type %d %s, name %s, progname %s)",
+        config.name, config.type, list->name, list->type.string,
+        list->cfg.type_id, list->cfg.type, list->cfg.name, list->cfg.progname);
     if ((*list->type.func)) {
       if (list->cfg.data_type & (PIPE_TYPE_METADATA|PIPE_TYPE_PAYLOAD|PIPE_TYPE_MSG));
       else {
@@ -259,6 +265,8 @@ void load_plugins(struct plugin_requests *req)
       if (list->cfg.pipe_zmq) {
 	char log_id[LARGEBUFLEN];
 
+        UWE("( %s/%s ): initialize zmq", config.name, config.type);
+
 	p_zmq_plugin_pipe_init_core(&chptr->zmq_host, list->id, username, password);
 	snprintf(log_id, sizeof(log_id), "%s/%s", list->name, list->type.string);
 	p_zmq_set_log_id(&chptr->zmq_host, log_id);
@@ -371,10 +379,14 @@ void load_plugins(struct plugin_requests *req)
       list = list->next;
     }
   }
+
+  UWE("( %s/%s ): end", config.name, config.type);
 }
 
 void exec_plugins(struct packet_ptrs *pptrs, struct plugin_requests *req) 
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   int saved_have_tag = FALSE, saved_have_tag2 = FALSE, saved_have_label = FALSE;
   pm_id_t saved_tag = 0, saved_tag2 = 0;
   pt_label_t *saved_label = malloc(sizeof(pt_label_t));
@@ -397,6 +409,10 @@ void exec_plugins(struct packet_ptrs *pptrs, struct plugin_requests *req)
 
   for (index = 0; channels_list[index].aggregation || channels_list[index].aggregation_2 || channels_list[index].aggregation_3; index++) {
     struct plugins_list_entry *p = channels_list[index].plugin;
+
+    UWE("( %s/%s ): plugin \"%s\" (type %d %s, name %s, progname %s)",
+        config.name, config.type, p->name,
+        p->cfg.type_id, p->cfg.type, p->cfg.name, p->cfg.progname);
 
     channels_list[index].already_reprocessed = FALSE;
 
@@ -465,6 +481,8 @@ reprocess:
       reset_fallback_status(pptrs);
       
       while (channels_list[index].phandler[num]) {
+        UWE("( %s/%s ): exec packet handler %d, channel %d",
+            config.name, config.type, num, index);
         (*channels_list[index].phandler[num])(&channels_list[index], pptrs, &bptr);
         num++;
       }
@@ -593,10 +611,14 @@ reprocess:
   reload_map_exec_plugins = FALSE;
   pretag_free_label(saved_label);
   if (saved_label) free(saved_label);
+
+  UWE("( %s/%s ): end", config.name, config.type);
 }
 
 struct channels_list_entry *insert_pipe_channel(int plugin_type, struct configuration *cfg, int pipe)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct channels_list_entry *chptr; 
   int index = 0;  
 
@@ -660,6 +682,8 @@ struct channels_list_entry *insert_pipe_channel(int plugin_type, struct configur
 
 void delete_pipe_channel(int pipe)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct channels_list_entry *chptr;
   int index = 0, index2;
 
@@ -708,6 +732,8 @@ void delete_pipe_channel(int pipe)
 /* trivial sorting(tm) :-) */
 void sort_pipe_channels()
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct channels_list_entry ctmp;
   int x = 0, y = 0; 
 
@@ -743,6 +769,8 @@ void init_pipe_channels()
 
 void evaluate_sampling(struct sampling *smp, pm_counter_t *pkt_len, pm_counter_t *pkt_num, pm_counter_t *sample_pool)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   pm_counter_t delta, pkts = *pkt_num;
 
   if (!smp->rate) { /* sampling is disabled */
@@ -993,6 +1021,8 @@ void plugin_pipe_check(struct configuration *cfg)
 
 void P_zmq_pipe_init(void *zh, int *pipe_fd, u_int32_t *seq)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   plugin_pipe_zmq_compile_check();
 
 #ifdef WITH_ZMQ
