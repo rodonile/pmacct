@@ -43,6 +43,8 @@ struct tunnel_entry tunnel_handlers_list[] = {
 
 void pm_pcap_cb(u_char *user, const struct pcap_pkthdr *pkthdr, const u_char *buf)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct packet_ptrs pptrs;
   struct pm_pcap_callback_data *cb_data = (struct pm_pcap_callback_data *) user;
   struct pm_pcap_device *device = cb_data->device;
@@ -202,10 +204,14 @@ void pm_pcap_cb(u_char *user, const struct pcap_pkthdr *pkthdr, const u_char *bu
   }
 
   if (cb_data->sig.is_set) sigprocmask(SIG_UNBLOCK, &cb_data->sig.set, NULL);
+
+  UWE("( %s/%s ): end", config.name, config.type);
 }
 
 int ip_handler(register struct packet_ptrs *pptrs)
 {
+  UWE("( %s/core ): start", config.name);
+
   register u_int8_t len = 0;
   register u_int16_t caplen = ((struct pcap_pkthdr *)pptrs->pkthdr)->caplen;
   register unsigned char *ptr;
@@ -353,12 +359,16 @@ int ip_handler(register struct packet_ptrs *pptrs)
   if (ret) {
     pptrs->flow_type.traffic_type = PM_FTYPE_IPV4;
   }
+
+  UWE("( %s/%s ): end", config.name, config.type);
  
   return ret;
 }
 
 int ip6_handler(register struct packet_ptrs *pptrs)
 {
+  UWE("( %s/core ): start", config.name);
+
   struct ip6_frag *fhdr = NULL;
   register u_int16_t caplen = ((struct pcap_pkthdr *)pptrs->pkthdr)->caplen;
   u_int16_t plen = ntohs(((struct ip6_hdr *)pptrs->iph_ptr)->ip6_plen);
@@ -518,6 +528,8 @@ int ip6_handler(register struct packet_ptrs *pptrs)
     pptrs->flow_type.traffic_type = PM_FTYPE_IPV6;
   }
 
+  UWE("( %s/%s ): end", config.name, config.type);
+
   return ret;
 }
 
@@ -667,6 +679,8 @@ int gtp_tunnel_configurator(struct tunnel_handler *th, char *opts)
 
 int gtp_tunnel_func(register struct packet_ptrs *pptrs)
 {
+  UWE("( %s/core ): start gtp_tunnel_func", config.name);
+
   register u_int16_t caplen = ((struct pcap_pkthdr *)pptrs->pkthdr)->caplen;
   struct pm_gtphdr_v0 *gtp_hdr_v0 = (struct pm_gtphdr_v0 *) pptrs->payload_ptr;
   u_int16_t off = pptrs->payload_ptr-pptrs->packet_ptr;
@@ -792,6 +806,8 @@ void PM_evaluate_flow_type(struct packet_ptrs *pptrs)
 
 ssize_t recvfrom_savefile(struct pm_pcap_device *device, void **buf, struct sockaddr *src_addr, struct timeval **ts, int *round, struct packet_ptrs *savefile_pptrs)
 {
+  UWE("( %s/core ): start", config.name);
+
   ssize_t ret = 0;
   int pm_pcap_ret;
 
@@ -861,6 +877,8 @@ ssize_t recvfrom_savefile(struct pm_pcap_device *device, void **buf, struct sock
 
 ssize_t recvfrom_rawip(unsigned char *buf, size_t len, struct sockaddr *src_addr, struct packet_ptrs *local_pptrs)
 {
+  UWE("( %s/core ): start", config.name);
+
   ssize_t ret = 0;
 
   local_pptrs->packet_ptr = buf;
@@ -894,6 +912,8 @@ ssize_t recvfrom_rawip(unsigned char *buf, size_t len, struct sockaddr *src_addr
 
 void pm_pcap_add_filter(struct pm_pcap_device *dev_ptr)
 {
+  UWE("( %s/core ): start", config.name);
+
   /* pcap library stuff */
   struct bpf_program filter;
 
