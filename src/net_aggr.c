@@ -39,12 +39,16 @@ int default_route_in_networks6_table;
 
 void load_networks(char *filename, struct networks_table *nt, struct networks_cache *nc)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   load_networks4(filename, nt, nc);
   load_networks6(filename, nt, nc);
 }
 
 void load_networks4(char *filename, struct networks_table *nt, struct networks_cache *nc)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   FILE *file;
   struct networks_table tmp, *tmpt = &tmp; 
   struct networks_table bkt;
@@ -389,6 +393,8 @@ void load_networks4(char *filename, struct networks_table *nt, struct networks_c
 /* sort the (sub)array v from start to end */
 void merge_sort(char *filename, struct networks_table_entry *table, int start, int end)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   int middle;
 
   /* no elements to sort */
@@ -413,6 +419,8 @@ void merge_sort(char *filename, struct networks_table_entry *table, int start, i
 */
 void merge(char *filename, struct networks_table_entry *table, int start, int middle, int end)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct networks_table_entry *v1, *v2;
   int  v1_n, v2_n, v1_index, v2_index, i, s = sizeof(struct networks_table_entry);
 
@@ -454,6 +462,8 @@ void merge(char *filename, struct networks_table_entry *table, int start, int mi
 
 struct networks_table_entry *binsearch(struct networks_table *nt, struct networks_cache *nc, struct host_addr *a)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   int low = 0, mid, high = nt->num-1;
   u_int32_t net, addrh = ntohl(a->address.ipv4.s_addr), addr = a->address.ipv4.s_addr;
   struct networks_table_entry *ret;
@@ -499,6 +509,8 @@ struct networks_table_entry *binsearch(struct networks_table *nt, struct network
 
 void remove_dupes(char *filename, struct networks_table *nt, int want_v6)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   int i, j;
 
   if (!want_v6) {
@@ -533,6 +545,8 @@ void remove_dupes(char *filename, struct networks_table *nt, int want_v6)
 
 void networks_cache_insert(struct networks_cache *nc, u_int32_t *key, struct networks_table_entry *result)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct networks_cache_entry *ptr;
 
   ptr = &nc->cache[*key % nc->num];
@@ -542,6 +556,8 @@ void networks_cache_insert(struct networks_cache *nc, u_int32_t *key, struct net
 
 struct networks_table_entry *networks_cache_search(struct networks_cache *nc, u_int32_t *key)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct networks_cache_entry *ptr;
 
   ptr = &nc->cache[*key % nc->num];
@@ -551,6 +567,8 @@ struct networks_table_entry *networks_cache_search(struct networks_cache *nc, u_
 
 void set_net_funcs(struct networks_table *nt)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   u_int8_t count = 0;
 
   memset(&net_funcs, 0, sizeof(net_funcs));
@@ -730,6 +748,8 @@ void set_net_funcs(struct networks_table *nt)
   }
 
   assert(count < NET_FUNCS_N);
+
+  UWE("( %s/%s ): end", config.name, config.type);
 }
 
 void init_net_funcs(struct networks_table *nt, struct networks_cache *nc, struct pkt_primitives *p,
@@ -753,6 +773,8 @@ void clear_dst_nmask(struct networks_table *nt, struct networks_cache *nc, struc
 void mask_src_ipaddr(struct networks_table *nt, struct networks_cache *nc, struct pkt_primitives *p,
 			struct pkt_bgp_primitives *pbgp, struct networks_file_data *nfd)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   u_int32_t maskbits[4], addrh[4];
   u_int8_t j, mask;
 
@@ -781,6 +803,8 @@ void mask_src_ipaddr(struct networks_table *nt, struct networks_cache *nc, struc
 void mask_static_src_ipaddr(struct networks_table *nt, struct networks_cache *nc, struct pkt_primitives *p,
 				struct pkt_bgp_primitives *pbgp, struct networks_file_data *nfd)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   u_int32_t addrh[4];
   u_int8_t j;
 
@@ -801,6 +825,8 @@ void mask_static_src_ipaddr(struct networks_table *nt, struct networks_cache *nc
 void mask_dst_ipaddr(struct networks_table *nt, struct networks_cache *nc, struct pkt_primitives *p,
 			struct pkt_bgp_primitives *pbgp, struct networks_file_data *nfd)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   u_int32_t maskbits[4], addrh[4];
   u_int8_t j, mask;
 
@@ -829,6 +855,8 @@ void mask_dst_ipaddr(struct networks_table *nt, struct networks_cache *nc, struc
 void mask_static_dst_ipaddr(struct networks_table *nt, struct networks_cache *nc, struct pkt_primitives *p,
 				struct pkt_bgp_primitives *pbgp, struct networks_file_data *nfd)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   u_int32_t addrh[4];
   u_int8_t j;
 
@@ -861,6 +889,8 @@ void copy_dst_mask(struct networks_table *nt, struct networks_cache *nc, struct 
 void search_src_ip(struct networks_table *nt, struct networks_cache *nc, struct pkt_primitives *p,
                         struct pkt_bgp_primitives *pbgp, struct networks_file_data *nfd)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   if (p->src_ip.family == AF_INET) {
     nfd->family = AF_INET;
     nfd->entry = (u_char *) binsearch(nt, nc, &p->src_ip);
@@ -878,6 +908,8 @@ void search_src_ip(struct networks_table *nt, struct networks_cache *nc, struct 
 void search_dst_ip(struct networks_table *nt, struct networks_cache *nc, struct pkt_primitives *p,
                         struct pkt_bgp_primitives *pbgp, struct networks_file_data *nfd)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   if (p->dst_ip.family == AF_INET) {
     nfd->family = AF_INET;
     nfd->entry = (u_char *) binsearch(nt, nc, &p->dst_ip);
@@ -895,6 +927,8 @@ void search_dst_ip(struct networks_table *nt, struct networks_cache *nc, struct 
 void search_src_host(struct networks_table *nt, struct networks_cache *nc, struct pkt_primitives *p,
 			struct pkt_bgp_primitives *pbgp, struct networks_file_data *nfd)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct networks_table_entry *res;
   struct networks6_table_entry *res6;
 
@@ -929,6 +963,8 @@ void search_src_host(struct networks_table *nt, struct networks_cache *nc, struc
 void search_dst_host(struct networks_table *nt, struct networks_cache *nc, struct pkt_primitives *p,
 			struct pkt_bgp_primitives *pbgp,struct networks_file_data *nfd)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct networks_table_entry *res;
   struct networks6_table_entry *res6;
 
@@ -963,6 +999,8 @@ void search_dst_host(struct networks_table *nt, struct networks_cache *nc, struc
 void search_src_nmask(struct networks_table *nt, struct networks_cache *nc, struct pkt_primitives *p,
 			struct pkt_bgp_primitives *pbgp, struct networks_file_data *nfd)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct networks_table_entry *res;
   struct networks6_table_entry *res6;
   u_int8_t mask = 0, default_route_in_networks_table = 0;
@@ -1001,6 +1039,8 @@ void search_src_nmask(struct networks_table *nt, struct networks_cache *nc, stru
 void search_dst_nmask(struct networks_table *nt, struct networks_cache *nc, struct pkt_primitives *p,
 			struct pkt_bgp_primitives *pbgp, struct networks_file_data *nfd)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct networks_table_entry *res;
   struct networks6_table_entry *res6;
   u_int8_t mask = 0, default_route_in_networks_table = 0;
@@ -1039,6 +1079,8 @@ void search_dst_nmask(struct networks_table *nt, struct networks_cache *nc, stru
 void search_src_as(struct networks_table *nt, struct networks_cache *nc, struct pkt_primitives *p,
 			struct pkt_bgp_primitives *pbgp, struct networks_file_data *nfd)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct networks_table_entry *res;
   struct networks6_table_entry *res6;
   as_t as = 0;
@@ -1081,6 +1123,8 @@ void search_src_as(struct networks_table *nt, struct networks_cache *nc, struct 
 void search_dst_as(struct networks_table *nt, struct networks_cache *nc, struct pkt_primitives *p,
 			struct pkt_bgp_primitives *pbgp, struct networks_file_data *nfd)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct networks_table_entry *res;
   struct networks6_table_entry *res6;
   as_t as = 0;
@@ -1123,6 +1167,8 @@ void search_dst_as(struct networks_table *nt, struct networks_cache *nc, struct 
 void search_peer_src_as(struct networks_table *nt, struct networks_cache *nc, struct pkt_primitives *p,
                         struct pkt_bgp_primitives *pbgp, struct networks_file_data *nfd)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct networks_table_entry *res;
   struct networks6_table_entry *res6;
   as_t as = 0;
@@ -1169,6 +1215,8 @@ void search_peer_src_as(struct networks_table *nt, struct networks_cache *nc, st
 void search_peer_dst_as(struct networks_table *nt, struct networks_cache *nc, struct pkt_primitives *p,
                         struct pkt_bgp_primitives *pbgp, struct networks_file_data *nfd)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct networks_table_entry *res;
   struct networks6_table_entry *res6;
   as_t as = 0;
@@ -1215,6 +1263,8 @@ void search_peer_dst_as(struct networks_table *nt, struct networks_cache *nc, st
 void search_peer_dst_ip(struct networks_table *nt, struct networks_cache *nc, struct pkt_primitives *p,
 			struct pkt_bgp_primitives *pbgp, struct networks_file_data *nfd)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct networks_table_entry *res = NULL;
   struct networks6_table_entry *res6 = NULL;
   struct host_addr nh;
@@ -1334,6 +1384,8 @@ as_t search_pretag_dst_as(struct networks_table *nt, struct networks_cache *nc, 
 
 void load_networks6(char *filename, struct networks_table *nt, struct networks_cache *nc)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   FILE *file;
   struct networks_table tmp, *tmpt = &tmp;
   struct networks_table bkt;
