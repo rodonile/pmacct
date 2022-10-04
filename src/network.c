@@ -32,6 +32,8 @@ struct tunnel_handler tunnel_registry[TUNNEL_REGISTRY_STACKS][TUNNEL_REGISTRY_EN
 
 int parse_proxy_header(int fd, struct host_addr *addr, u_int16_t *port)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   const char v2sig[12] = "\x0D\x0A\x0D\x0A\x00\x0D\x0A\x51\x55\x49\x54\x0A";
   char ip_address[INET6_ADDRSTRLEN];
   size_t size = 0;
@@ -123,6 +125,8 @@ int parse_proxy_header(int fd, struct host_addr *addr, u_int16_t *port)
 /* Computing the internet checksum (RFC 1071) */
 u_int16_t pm_checksum(u_int16_t *addr, int len, u_int32_t *prev_sum, int last)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   int count = len;
   u_int32_t sum = 0;
   u_int16_t answer = 0;
@@ -163,6 +167,8 @@ u_int16_t pm_checksum(u_int16_t *addr, int len, u_int32_t *prev_sum, int last)
 /* Build IPv6 UDP pseudo-header and call checksum function (Section 8.1 of RFC 2460). */
 u_int16_t pm_udp6_checksum(struct ip6_hdr *ip6hdr, struct pm_udphdr *udphdr, u_char *payload, int payload_len)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   u_char buf[2];
   u_int32_t sum = 0;
   u_int16_t answer = 0;
@@ -247,6 +253,8 @@ void pm_dtls_init(pm_dtls_glob_t *dtls_globs, char *files_path)
 
 void pm_dtls_client_init(pm_dtls_peer_t *peer, int fd, struct sockaddr_storage *sock, socklen_t sock_len, char *verify_cert)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   int ret;
 
   if (!peer) {
@@ -304,6 +312,8 @@ void pm_dtls_client_init(pm_dtls_peer_t *peer, int fd, struct sockaddr_storage *
 
 ssize_t pm_dtls_server_recv(gnutls_transport_ptr_t p, void *data, size_t len)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   pm_dtls_conn_t *conn = p;
   struct sockaddr_storage client;
   socklen_t clen;
@@ -326,6 +336,8 @@ ssize_t pm_dtls_server_recv(gnutls_transport_ptr_t p, void *data, size_t len)
 
 ssize_t pm_dtls_server_send(gnutls_transport_ptr_t p, const void *data, size_t len)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   pm_dtls_conn_t *conn = p;
 
   return sendto(conn->fd, data, len, 0, (struct sockaddr *) &conn->peer, conn->peer_len);
@@ -333,6 +345,8 @@ ssize_t pm_dtls_server_send(gnutls_transport_ptr_t p, const void *data, size_t l
 
 ssize_t pm_dtls_client_send(pm_dtls_peer_t *peer, const void *data, size_t len)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   int ret = 0;
 
   if (peer->conn.stage == PM_DTLS_STAGE_UP) {
@@ -349,13 +363,19 @@ ssize_t pm_dtls_client_send(pm_dtls_peer_t *peer, const void *data, size_t len)
 
 int pm_dtls_server_select(gnutls_transport_ptr_t p, unsigned int ms)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   return 1;
 }
 
 int pm_dtls_client_recv_async(pm_dtls_peer_t *peer)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   int ret = 0, buflen = PM_DTLS_MTU;
   char buf[buflen];
+
+  UWE("( %s/%s ): start endless loop", config.name, config.type);
 
   for (;;) {
     if (peer->conn.stage == PM_DTLS_STAGE_UP) {
@@ -393,6 +413,8 @@ void pm_dtls_server_log(int level, const char *str)
 
 void pm_dtls_server_bye(pm_dtls_peer_t *peer)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct xflow_status_entry *entry;
   int idx;
 
@@ -428,6 +450,8 @@ void pm_dtls_server_bye(pm_dtls_peer_t *peer)
 
 void pm_dtls_client_bye(pm_dtls_peer_t *peer)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   gnutls_bye(peer->session, GNUTLS_SHUT_WR);
   gnutls_deinit(peer->session);
 
@@ -440,6 +464,8 @@ void pm_dtls_client_bye(pm_dtls_peer_t *peer)
 
 int pm_dtls_server_process(int dtls_sock, struct sockaddr_storage *client, socklen_t clen, u_char *dtls_packet, int len, void *st)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   int hash = hash_status_table(0, (struct sockaddr *) client, XFLOW_STATUS_TABLE_SZ);
   xflow_status_table_t *status_table = st;
   struct xflow_status_entry *entry = NULL;
@@ -549,6 +575,8 @@ int pm_dtls_server_process(int dtls_sock, struct sockaddr_storage *client, sockl
       }
     }
   }
+
+  UWE("( %s/%s ): end", config.name, config.type);
 
   return FALSE;
 }
