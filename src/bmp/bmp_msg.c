@@ -32,6 +32,8 @@
 
 u_int32_t bmp_process_packet(char *bmp_packet, u_int32_t len, struct bmp_peer *bmpp, int *do_term)
 {
+  UWE("( %s/BMP ): start", config.name);
+
   struct bgp_misc_structs *bms;
   struct bgp_peer *peer;
   char *bmp_packet_ptr = bmp_packet;
@@ -122,6 +124,8 @@ u_int32_t bmp_process_packet(char *bmp_packet, u_int32_t len, struct bmp_peer *b
 
 void bmp_process_msg_init(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp)
 {
+  UWE("( %s/BMP ): start", config.name);
+
   struct bgp_misc_structs *bms;
   struct bgp_peer *peer;
   struct bmp_data bdata;
@@ -199,6 +203,8 @@ void bmp_process_msg_init(char **bmp_packet, u_int32_t *len, struct bmp_peer *bm
 
 void bmp_process_msg_term(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp)
 {
+  UWE("( %s/BMP ): start", config.name);
+
   struct bgp_misc_structs *bms;
   struct bgp_peer *peer;
   struct bmp_data bdata;
@@ -278,6 +284,8 @@ void bmp_process_msg_term(char **bmp_packet, u_int32_t *len, struct bmp_peer *bm
 
 void bmp_process_msg_peer_up(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp)
 {
+  UWE("( %s/BMP ): start", config.name);
+
   struct bgp_misc_structs *bms;
   struct bgp_peer *peer;
   struct bmp_data bdata;
@@ -504,6 +512,8 @@ void bmp_process_msg_peer_up(char **bmp_packet, u_int32_t *len, struct bmp_peer 
 
 void bmp_process_msg_peer_down(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp)
 {
+  UWE("( %s/BMP ): start", config.name);
+
   struct bgp_misc_structs *bms;
   struct bgp_peer *peer, *bmpp_bgp_peer;
   struct bmp_data bdata;
@@ -678,6 +688,8 @@ void bmp_process_msg_peer_down(char **bmp_packet, u_int32_t *len, struct bmp_pee
 
 void bmp_process_msg_route_monitor(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp)
 {
+  UWE("( %s/BMP ): start", config.name);
+
   struct bgp_misc_structs *bms;
   struct bgp_peer *peer, *bmpp_bgp_peer;
   struct bmp_data bdata;
@@ -853,6 +865,8 @@ void bmp_process_msg_route_monitor(char **bmp_packet, u_int32_t *len, struct bmp
 
 void bmp_process_msg_route_mirror(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp)
 {
+  UWE("( %s/BMP ): start", config.name);
+
   struct bgp_misc_structs *bms;
   struct bgp_peer *peer;
 
@@ -871,6 +885,8 @@ void bmp_process_msg_route_mirror(char **bmp_packet, u_int32_t *len, struct bmp_
 
 void bmp_process_msg_stats(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp)
 {
+  UWE("( %s/BMP ): start", config.name);
+
   struct bgp_misc_structs *bms;
   struct bgp_peer *peer;
   struct bmp_data bdata;
