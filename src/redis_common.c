@@ -99,6 +99,8 @@ int p_redis_connect(struct p_redis_host *redis_host, int fatal)
         Log(LOG_DEBUG, "DEBUG ( %s ): reconnecting to redis server (fd %d)\n",
             redis_host->log_id, redis_host->ctx->fd);
         res = redisReconnect(redis_host->ctx);
+        UWE("( %s ): redis server connection after redisReconnect (fd %d)",
+            redis_host->log_id, redis_host->ctx->fd);
       }
       else {
         /* initial connect */
@@ -117,6 +119,8 @@ int p_redis_connect(struct p_redis_host *redis_host, int fatal)
         Log(LOG_INFO, "INFO ( %s ): connecting to redis server %s:%d\n",
             redis_host->log_id, dest_str, dest_port);
         redis_host->ctx = redisConnect(dest_str, dest_port);
+        UWE("( %s ): redis server connection after redisConnect (fd %d)",
+            redis_host->log_id, redis_host->ctx->fd);
       }
 
       if (res != REDIS_OK || redis_host->ctx == NULL || redis_host->ctx->err) {
