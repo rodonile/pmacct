@@ -47,6 +47,8 @@ int bmp_log_msg(struct bgp_peer *peer, struct bmp_data *bdata, struct pm_list *t
 
   if (!bms || !peer || !peer->log || !bdata || !event_type) return ERR;
 
+  UWE("( %s/%s ): start, peer %s", config.name, bms->log_str, peer->addr_str);
+
   if (!strcmp(event_type, "dump")) etype = BGP_LOGDUMP_ET_DUMP;
   else if (!strcmp(event_type, "log")) etype = BGP_LOGDUMP_ET_LOG;
 
@@ -319,6 +321,8 @@ int bmp_log_msg(struct bgp_peer *peer, struct bmp_data *bdata, struct pm_list *t
 	struct p_kafka_host *kafka_host = (struct p_kafka_host *) peer->log->kafka_host;
 
 	if (kafka_host->sd_schema[log_type]) {
+          UWE("( %s/%s ): before serdes_schema_serialize_avro(), schema id %d",
+              config.name, bms->log_str, serdes_schema_id(kafka_host->sd_schema[log_type]));
 	  if (serdes_schema_serialize_avro(kafka_host->sd_schema[log_type], &p_avro_obj, &p_avro_local_buf, &p_avro_len,
 					 kafka_host->errstr, sizeof(kafka_host->errstr))) {
 	    Log(LOG_ERR, "ERROR ( %s/%s ): bmp_log_msg(): serdes_schema_serialize_avro() failed for %s: %s\n",
