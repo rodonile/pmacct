@@ -26,6 +26,8 @@
 
 int bgp_parse_msg(struct bgp_peer *peer, time_t now, int online)
 {
+  UWE("( %s/BGP ): start", config.name);
+
   struct bgp_misc_structs *bms;
   struct bgp_msg_data bmd;
   char *bgp_packet_ptr;
@@ -143,6 +145,8 @@ int bgp_parse_msg(struct bgp_peer *peer, time_t now, int online)
 
 int bgp_parse_open_msg(struct bgp_msg_data *bmd, char *bgp_packet_ptr, time_t now, int online)
 {
+  UWE("( %s/BGP ): start", config.name);
+
   struct bgp_peer *peer = bmd->peer;
   struct bgp_misc_structs *bms;
   char bgp_reply_pkt[BGP_BUFFER_SIZE], *bgp_reply_pkt_ptr;
@@ -469,6 +473,8 @@ int bgp_write_keepalive_msg(char *msg)
 /* write BGP OPEN msg */
 int bgp_write_open_msg(char *msg, char *cp_msg, int cp_msglen, struct bgp_peer *peer)
 {
+  UWE("( %s/BGP ): start", config.name);
+
   struct bgp_open *bopen_reply = (struct bgp_open *) msg;
   char my_id_static[] = "1.2.3.4", *my_id = my_id_static;
   struct host_addr my_id_addr, bgp_ip, bgp_id;
@@ -537,6 +543,8 @@ int bgp_write_open_msg(char *msg, char *cp_msg, int cp_msglen, struct bgp_peer *
 
 int bgp_write_notification_msg(char *msg, int msglen, u_int8_t n_major, u_int8_t n_minor, char *shutdown_msg)
 {
+  UWE("( %s/BGP ): start", config.name);
+
   struct bgp_notification *bn_reply = (struct bgp_notification *) msg;
   struct bgp_notification_shutdown_msg *bnsm_reply;
   u_int16_t shutdown_msglen;
@@ -581,6 +589,8 @@ int bgp_write_notification_msg(char *msg, int msglen, u_int8_t n_major, u_int8_t
 
 int bgp_parse_notification_msg(struct bgp_msg_data *bmd, char *pkt, u_int8_t *res_maj, u_int8_t *res_min, char *shutdown_msg, u_int16_t shutdown_msglen)
 {
+  UWE("( %s/BGP ): start", config.name);
+
   struct bgp_peer *peer = bmd->peer;
   struct bgp_notification *bn = (struct bgp_notification *) pkt;
   struct bgp_notification_shutdown_msg *bnsm;
@@ -618,6 +628,8 @@ int bgp_parse_notification_msg(struct bgp_msg_data *bmd, char *pkt, u_int8_t *re
 
 int bgp_parse_update_msg(struct bgp_msg_data *bmd, char *pkt)
 {
+  UWE("( %s/BGP ): start", config.name);
+
   struct bgp_misc_structs *bms;
   struct bgp_peer *peer = bmd->peer;
   char bgp_peer_str[INET6_ADDRSTRLEN];
@@ -813,6 +825,8 @@ int bgp_parse_update_msg(struct bgp_msg_data *bmd, char *pkt)
 int bgp_attr_parse(struct bgp_peer *peer, struct bgp_attr *attr, struct bgp_attr_extra *attr_extra,
 		   char *ptr, int len, struct bgp_nlri *mp_update, struct bgp_nlri *mp_withdraw)
 {
+  UWE("( %s/BGP ): start", config.name);
+
   int to_the_end = len, ret;
   u_int8_t flag, type, *tmp;
   u_int16_t tmp16, attr_len;
@@ -1371,6 +1385,8 @@ int bgp_attr_parse_otc(struct bgp_peer *peer, u_int16_t len, struct bgp_attr_ext
 
 int bgp_process_update(struct bgp_msg_data *bmd, struct prefix *p, void *attr, struct bgp_attr_extra *attr_extra, afi_t afi, safi_t safi, int idx)
 {
+  UWE("( %s/BGP ): start", config.name);
+
   struct bgp_peer *peer = bmd->peer;
   struct bgp_rt_structs *inter_domain_routing_db;
   struct bgp_misc_structs *bms;
@@ -1500,6 +1516,8 @@ log_update:
 
 int bgp_process_withdraw(struct bgp_msg_data *bmd, struct prefix *p, void *attr, struct bgp_attr_extra *attr_extra, afi_t afi, safi_t safi, int idx)
 {
+  UWE("( %s/BGP ): start", config.name);
+
   struct bgp_peer *peer = bmd->peer;
   struct bgp_rt_structs *inter_domain_routing_db;
   struct bgp_misc_structs *bms;
