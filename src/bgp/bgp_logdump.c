@@ -58,6 +58,8 @@ int bgp_peer_log_msg(struct bgp_node *route, struct bgp_info *ri, afi_t afi, saf
   bms = bgp_select_misc_db(peer->type);
   if (!bms) return ERR;
 
+  UWE("( %s/%s ): start", config.name, bms->log_str);
+
   if (!strcmp(event_type, "dump")) etype = BGP_LOGDUMP_ET_DUMP;
   else if (!strcmp(event_type, "log")) etype = BGP_LOGDUMP_ET_LOG;
   else if (!strcmp(event_type, "lglass")) etype = BGP_LOGDUMP_ET_LG;
@@ -648,6 +650,8 @@ int bgp_peer_log_msg(struct bgp_node *route, struct bgp_info *ri, afi_t afi, saf
 	struct p_kafka_host *kafka_host = (struct p_kafka_host *) peer->log->kafka_host;
 
 	if (kafka_host->sd_schema[0]) {
+          UWE("( %s/%s ): before serdes_schema_serialize_avro(), schema id %d",
+              config.name, bms->log_str, serdes_schema_id(kafka_host->sd_schema[0]));
 	  if (serdes_schema_serialize_avro(kafka_host->sd_schema[0], &p_avro_obj, &p_avro_local_buf, &p_avro_len,
 					 kafka_host->errstr, sizeof(kafka_host->errstr))) {
 	    Log(LOG_ERR, "ERROR ( %s/%s ): bgp_peer_log_msg(): serdes_schema_serialize_avro() failed: %s\n", config.name, bms->log_str, kafka_host->errstr);
@@ -937,6 +941,8 @@ int bgp_peer_log_init(struct bgp_peer *peer, bgp_tag_t *tag, int output, int typ
 	  struct p_kafka_host *kafka_host = (struct p_kafka_host *) peer->log->kafka_host;
 
 	  if (kafka_host->sd_schema[BGP_LOG_TYPE_LOGINIT]) {
+            UWE("( %s/%s ): before serdes_schema_serialize_avro(), schema id %d",
+                config.name, bms->log_str, serdes_schema_id(kafka_host->sd_schema[BGP_LOG_TYPE_LOGINIT]));
 	    if (serdes_schema_serialize_avro(kafka_host->sd_schema[BGP_LOG_TYPE_LOGINIT], &p_avro_obj, &p_avro_local_buf, &p_avro_len,
 					   kafka_host->errstr, sizeof(kafka_host->errstr))) {
 	      Log(LOG_ERR, "ERROR ( %s/%s ): bgp_peer_log_init(): serdes_schema_serialize_avro() failed: %s\n", config.name, bms->log_str, kafka_host->errstr);
@@ -1177,6 +1183,8 @@ int bgp_peer_log_close(struct bgp_peer *peer, bgp_tag_t *tag, int output, int ty
 	  struct p_kafka_host *kafka_host = (struct p_kafka_host *) peer->log->kafka_host;
 
 	  if (kafka_host->sd_schema[BGP_LOG_TYPE_LOGCLOSE]) {
+            UWE("( %s/%s ): before serdes_schema_serialize_avro(), schema id %d",
+                config.name, bms->log_str, serdes_schema_id(kafka_host->sd_schema[BGP_LOG_TYPE_LOGCLOSE]));
 	    if (serdes_schema_serialize_avro(kafka_host->sd_schema[BGP_LOG_TYPE_LOGCLOSE], &p_avro_obj, &p_avro_local_buf, &p_avro_len,
 					 kafka_host->errstr, sizeof(kafka_host->errstr))) {
 	      Log(LOG_ERR, "ERROR ( %s/%s ): bgp_peer_log_close(): serdes_schema_serialize_avro() failed: %s\n", config.name, bms->log_str, kafka_host->errstr);
@@ -1548,6 +1556,8 @@ int bgp_peer_dump_init(struct bgp_peer *peer, bgp_tag_t *tag, int output, int ty
 	struct p_kafka_host *kafka_host = (struct p_kafka_host *) peer->log->kafka_host;
 
 	if (kafka_host->sd_schema[BGP_LOG_TYPE_DUMPINIT]) {
+          UWE("( %s/%s ): before serdes_schema_serialize_avro(), schema id %d",
+              config.name, bms->log_str, serdes_schema_id(kafka_host->sd_schema[BGP_LOG_TYPE_DUMPINIT]));
 	  if (serdes_schema_serialize_avro(kafka_host->sd_schema[BGP_LOG_TYPE_DUMPINIT], &p_avro_obj, &p_avro_local_buf, &p_avro_len,
 					 kafka_host->errstr, sizeof(kafka_host->errstr))) {
 	    Log(LOG_ERR, "ERROR ( %s/%s ): bgp_peer_dump_init(): serdes_schema_serialize_avro() failed: %s\n", config.name, bms->log_str, kafka_host->errstr);
@@ -1784,6 +1794,8 @@ int bgp_peer_dump_close(struct bgp_peer *peer, bgp_tag_t *tag, struct bgp_dump_s
 	struct p_kafka_host *kafka_host = (struct p_kafka_host *) peer->log->kafka_host;
 
 	if (kafka_host->sd_schema[BGP_LOG_TYPE_DUMPCLOSE]) {
+          UWE("( %s/%s ): before serdes_schema_serialize_avro(), schema id %d",
+              config.name, bms->log_str, serdes_schema_id(kafka_host->sd_schema[BGP_LOG_TYPE_DUMPCLOSE]));
 	  if (serdes_schema_serialize_avro(kafka_host->sd_schema[BGP_LOG_TYPE_DUMPCLOSE], &p_avro_obj, &p_avro_local_buf, &p_avro_len,
 					 kafka_host->errstr, sizeof(kafka_host->errstr))) {
 	    Log(LOG_ERR, "ERROR ( %s/%s ): bgp_peer_dump_close(): serdes_schema_serialize_avro() failed: %s\n", config.name, bms->log_str, kafka_host->errstr);
