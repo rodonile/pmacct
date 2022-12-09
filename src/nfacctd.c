@@ -992,6 +992,19 @@ int main(int argc,char **argv, char **envp)
   if (config.aggregate_primitives) {
     req.key_value_table = (void *) &custom_primitives_registry;
     load_id_file(MAP_CUSTOM_PRIMITIVES, config.aggregate_primitives, NULL, &req, &custom_primitives_allocated);
+
+    if (custom_primitives_allocated) {
+      UWE("( %s/core ): %d custom primitives",
+          config.name, custom_primitives_registry.num);
+      struct custom_primitive_entry p;
+      for (int i=0; i < custom_primitives_registry.num; ++i) {
+        p = custom_primitives_registry.primitive[i];
+        UWE("( %s/core ): custom primitive %s"
+            " (pen %d, type %d, len %d, alloc %d, semantic %d, repeat %d)",
+            config.name, p.name, p.pen, p.field_type, p.len, p.alloc_len,
+            p.semantics, p.repeat_id);
+      }
+    }
   }
   else memset(&custom_primitives_registry, 0, sizeof(custom_primitives_registry));
 
