@@ -2348,6 +2348,10 @@ void NF_src_host_handler(struct channels_list_entry *chptr, struct packet_ptrs *
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
 
+  UWE("( %s/%s ): ipfix version %d, l3 proto %04x, traffic type %d",
+      config.name, config.type, hdr->version,
+      pptrs->l3_proto, pptrs->flow_type.traffic_type);
+
   switch(hdr->version) {
   case 10:
   case 9:
@@ -2435,6 +2439,10 @@ void NF_dst_host_handler(struct channels_list_entry *chptr, struct packet_ptrs *
   struct pkt_data *pdata = (struct pkt_data *) *data;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
+
+  UWE("( %s/%s ): ipfix version %d, l3 proto %04x, traffic type %d",
+      config.name, config.type, hdr->version,
+      pptrs->l3_proto, pptrs->flow_type.traffic_type);
 
   switch(hdr->version) {
   case 10:
