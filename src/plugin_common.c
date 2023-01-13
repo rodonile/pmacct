@@ -50,6 +50,8 @@ int dyn_table, dyn_table_time_only;
 /* Functions */
 void P_set_signals()
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   signal(SIGINT, P_exit_now);
   /* XXX: SIGHUP? */
   signal(SIGUSR1, SIG_IGN);
@@ -60,6 +62,8 @@ void P_set_signals()
  
 void P_init_default_values()
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   if (config.pidfile) write_pid_file_plugin(config.pidfile, config.type, config.name);
   if (config.logfile) {
     if (config.logfile_fd) fclose(config.logfile_fd);
@@ -126,6 +130,8 @@ void P_init_default_values()
 
 void P_config_checks()
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   if (config.nfacctd_pro_rating && config.nfacctd_stitching) {
     Log(LOG_ERR, "ERROR ( %s/%s ): Pro-rating (ie. nfacctd_pro_rating) and stitching (ie. nfacctd_stitching) are mutual exclusive. Exiting.\n", config.name, config.type);
     goto exit_lane;
@@ -139,6 +145,8 @@ exit_lane:
 
 unsigned int P_cache_modulo(struct primitives_ptrs *prim_ptrs)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct pkt_data *pdata = prim_ptrs->data;
   struct pkt_primitives *srcdst = &pdata->primitives;
   struct pkt_bgp_primitives *pbgp = prim_ptrs->pbgp;
@@ -162,6 +170,8 @@ unsigned int P_cache_modulo(struct primitives_ptrs *prim_ptrs)
 
 struct chained_cache *P_cache_search(struct primitives_ptrs *prim_ptrs)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct pkt_data *pdata = prim_ptrs->data;
   struct pkt_primitives *data = &pdata->primitives;
   struct pkt_bgp_primitives *pbgp = prim_ptrs->pbgp;
@@ -228,6 +238,8 @@ struct chained_cache *P_cache_search(struct primitives_ptrs *prim_ptrs)
 
 void P_cache_insert(struct primitives_ptrs *prim_ptrs, struct insert_data *idata)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct pkt_data *data = prim_ptrs->data;
   struct pkt_bgp_primitives *pbgp = prim_ptrs->pbgp;
   struct pkt_nat_primitives *pnat = prim_ptrs->pnat;
@@ -510,6 +522,8 @@ void P_cache_insert(struct primitives_ptrs *prim_ptrs, struct insert_data *idata
 
 void P_cache_insert_pending(struct chained_cache *queue[], int index, struct chained_cache *container)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct chained_cache *cache_ptr;
   struct primitives_ptrs prim_ptrs;
   struct pkt_data pdata;
@@ -576,6 +590,8 @@ void P_cache_insert_pending(struct chained_cache *queue[], int index, struct cha
 
 void P_cache_handle_flush_event(struct ports_table *pt, struct protos_table *prt, struct protos_table *tost)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   pid_t ret;
 
   if (qq_ptr) P_cache_mark_flush(queries_queue, qq_ptr, FALSE);
@@ -628,6 +644,8 @@ void P_cache_handle_flush_event(struct ports_table *pt, struct protos_table *prt
 
 void P_cache_mark_flush(struct chained_cache *queue[], int index, int exiting)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct timeval commit_basetime;
   int j, delay = 0;
 
@@ -686,6 +704,8 @@ void P_cache_mark_flush(struct chained_cache *queue[], int index, int exiting)
 
 void P_cache_flush(struct chained_cache *queue[], int index)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   int j;
 
   for (j = 0; j < index; j++) {
@@ -699,6 +719,8 @@ void P_cache_flush(struct chained_cache *queue[], int index)
 
 struct chained_cache *P_cache_attach_new_node(struct chained_cache *elem)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   if ((sa.ptr + (2 * sizeof(struct chained_cache))) <= (sa.base + sa.size)) {
     sa.ptr += sizeof(struct chained_cache);
     elem->next = (struct chained_cache *) sa.ptr;
@@ -709,6 +731,8 @@ struct chained_cache *P_cache_attach_new_node(struct chained_cache *elem)
 
 void P_sum_host_insert(struct primitives_ptrs *prim_ptrs, struct insert_data *idata)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct pkt_data *data = prim_ptrs->data;
   struct host_addr tmp;
 
@@ -721,6 +745,8 @@ void P_sum_host_insert(struct primitives_ptrs *prim_ptrs, struct insert_data *id
 
 void P_sum_port_insert(struct primitives_ptrs *prim_ptrs, struct insert_data *idata)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct pkt_data *data = prim_ptrs->data;
   u_int16_t port;
 
@@ -733,6 +759,8 @@ void P_sum_port_insert(struct primitives_ptrs *prim_ptrs, struct insert_data *id
 
 void P_sum_as_insert(struct primitives_ptrs *prim_ptrs, struct insert_data *idata)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct pkt_data *data = prim_ptrs->data;
   as_t asn;
 
@@ -746,6 +774,8 @@ void P_sum_as_insert(struct primitives_ptrs *prim_ptrs, struct insert_data *idat
 #if defined (HAVE_L2)
 void P_sum_mac_insert(struct primitives_ptrs *prim_ptrs, struct insert_data *idata)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct pkt_data *data = prim_ptrs->data;
   u_char macaddr[ETH_ADDR_LEN];
 
@@ -759,6 +789,8 @@ void P_sum_mac_insert(struct primitives_ptrs *prim_ptrs, struct insert_data *ida
 
 void P_exit_now(int signum)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   if (qq_ptr) P_cache_mark_flush(queries_queue, qq_ptr, TRUE);
 
   dump_writers_count();
@@ -773,6 +805,8 @@ void P_exit_now(int signum)
 
 int P_trigger_exec(char *filename)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   char *args[2] = { filename, NULL };
   int pid;
 
@@ -793,6 +827,8 @@ int P_trigger_exec(char *filename)
 
 void P_init_historical_acct(time_t now)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   time_t t = 0;
 
   basetime.tv_sec = now;
@@ -832,6 +868,8 @@ void P_init_historical_acct(time_t now)
 
 void P_init_refresh_deadline(time_t *now, int refresh_time, int startup_delay, char *roundoff)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   time_t t;
 
   t = roundoff_time((*now), roundoff);
@@ -842,6 +880,8 @@ void P_init_refresh_deadline(time_t *now, int refresh_time, int startup_delay, c
 
 void P_eval_historical_acct(struct timeval *stamp, struct timeval *basetime, time_t timeslot)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   if (stamp->tv_sec) {
     if (config.sql_history != COUNT_MONTHLY) {
       int residual;
@@ -870,6 +910,8 @@ void P_eval_historical_acct(struct timeval *stamp, struct timeval *basetime, tim
 
 int P_cmp_historical_acct(struct timeval *entry_basetime, struct timeval *insert_basetime)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   int ret = TRUE;
 
   ret = memcmp(entry_basetime, insert_basetime, sizeof(struct timeval));
@@ -879,6 +921,8 @@ int P_cmp_historical_acct(struct timeval *entry_basetime, struct timeval *insert
 
 void primptrs_set_all_from_chained_cache(struct primitives_ptrs *prim_ptrs, struct chained_cache *entry)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct pkt_data *data;
 
   if (prim_ptrs && entry) {
@@ -897,6 +941,8 @@ void primptrs_set_all_from_chained_cache(struct primitives_ptrs *prim_ptrs, stru
 
 void P_handle_table_dyn_rr(char *new, int newlen, char *old, struct p_table_rr *rk_rr)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   char index_str[SRVBUFLEN];
   int oldlen;
 
@@ -917,6 +963,8 @@ void P_handle_table_dyn_rr(char *new, int newlen, char *old, struct p_table_rr *
 
 void P_update_time_reference(struct insert_data *idata)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   idata->now = time(NULL);
 
   if (config.nfacctd_stitching) {
@@ -939,6 +987,8 @@ void P_update_time_reference(struct insert_data *idata)
 
 void P_set_stitch(struct chained_cache *cache_ptr, struct pkt_data *data, struct insert_data *idata)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   if (data->time_start.tv_sec) {
     memcpy(&cache_ptr->stitch->timestamp_min, &data->time_start, sizeof(struct timeval));
   }
@@ -956,6 +1006,8 @@ void P_set_stitch(struct chained_cache *cache_ptr, struct pkt_data *data, struct
 
 void P_update_stitch(struct chained_cache *cache_ptr, struct pkt_data *data, struct insert_data *idata)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   if (data->time_end.tv_sec) {
     if (data->time_end.tv_sec > cache_ptr->stitch->timestamp_max.tv_sec &&
         data->time_end.tv_usec > cache_ptr->stitch->timestamp_max.tv_usec) {
@@ -969,6 +1021,8 @@ void P_update_stitch(struct chained_cache *cache_ptr, struct pkt_data *data, str
 
 cdada_list_t *ptm_labels_to_linked_list(const char *ptm_labels)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   /* Max amount of tokens per string: 128 Labels */
   const int MAX_TOKENS = 256;
 
@@ -1026,6 +1080,8 @@ cdada_list_t *ptm_labels_to_linked_list(const char *ptm_labels)
 
 cdada_list_t *tcpflags_to_linked_list(size_t tcpflags_decimal)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   const int TCP_FLAGS = 6;
 
   /* Generate the tcpflag's binary array */
@@ -1063,6 +1119,8 @@ cdada_list_t *tcpflags_to_linked_list(size_t tcpflags_decimal)
 
 cdada_list_t *fwd_status_to_linked_list()
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   const int FWD_STATUS_REASON_CODES = 23;
 
   /* RFC-7270: forwardingStatus with a compliant reason code */
@@ -1121,6 +1179,8 @@ cdada_list_t *fwd_status_to_linked_list()
 
 void mpls_label_stack_to_str(char *str_label_stack, int sls_len, u_int32_t *label_stack, int ls_len)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   int max_mpls_label_stack_dec = 0, idx_0;
   char label_buf[MAX_MPLS_LABEL_LEN];
   u_int8_t ls_depth = 0;
@@ -1154,6 +1214,8 @@ void mpls_label_stack_to_str(char *str_label_stack, int sls_len, u_int32_t *labe
 
 void load_protos(char *filename, struct protos_table *pt)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   FILE *file;
   char buf[SUPERSHORTBUFLEN];
   int ret, rows = 1, newline = TRUE, buf_eff_len, idx;
@@ -1245,6 +1307,8 @@ void load_protos(char *filename, struct protos_table *pt)
 
 void load_ports(char *filename, struct ports_table *pt)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   FILE *file;
   char buf[8];
   int ret, rows = 0, newline = TRUE;
@@ -1307,5 +1371,7 @@ void load_ports(char *filename, struct ports_table *pt)
 
 void load_tos(char *filename, struct protos_table *tost)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   load_protos(filename, tost);
 }
