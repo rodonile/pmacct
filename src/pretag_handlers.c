@@ -61,6 +61,8 @@
 
 int PT_map_id_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   struct host_addr a;
   char *endptr = NULL, *incptr;
   pm_id_t j = 0, z = 0;
@@ -150,6 +152,8 @@ int PT_map_id_handler(char *filename, struct id_entry *e, char *value, struct pl
 
 int PT_map_id2_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   char *endptr = NULL, *incptr;
   pm_id_t j;
   int x, inc = 0, len = 0;
@@ -192,6 +196,8 @@ int PT_map_id2_handler(char *filename, struct id_entry *e, char *value, struct p
 
 int PT_map_label_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int x, len;
 
   // XXX: isprint check?
@@ -255,6 +261,8 @@ int PT_map_label_handler(char *filename, struct id_entry *e, char *value, struct
 
 int PT_map_ip_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int x = 0;
 
   if (!str_to_addr_mask(value, &e->key.agent_ip.a, &e->key.agent_mask)) {
@@ -277,6 +285,8 @@ int PT_map_ip_handler(char *filename, struct id_entry *e, char *value, struct pl
 
 int PT_map_input_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int x = 0, len;
   char *endptr;
 
@@ -312,6 +322,8 @@ int PT_map_input_handler(char *filename, struct id_entry *e, char *value, struct
 
 int PT_map_output_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int x = 0, len;
   char *endptr;
 
@@ -347,6 +359,8 @@ int PT_map_output_handler(char *filename, struct id_entry *e, char *value, struc
 
 int PT_map_nexthop_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int x = 0;
 
   e->key.nexthop.neg = pt_check_neg(&value, &((struct id_table *) req->key_value_table)->flags);
@@ -371,6 +385,8 @@ int PT_map_nexthop_handler(char *filename, struct id_entry *e, char *value, stru
 
 int PT_map_bgp_nexthop_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int x = 0, have_bgp = 0;
 
   if (req->ptm_c.load_ptm_plugin == PLUGIN_ID_TEE) req->ptm_c.load_ptm_res = TRUE;
@@ -418,6 +434,8 @@ int PT_map_bgp_nexthop_handler(char *filename, struct id_entry *e, char *value, 
 
 int BPAS_map_bgp_nexthop_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int x = 0;
 
   e->key.bgp_nexthop.neg = pt_check_neg(&value, &((struct id_table *) req->key_value_table)->flags);
@@ -438,6 +456,8 @@ int BPAS_map_bgp_nexthop_handler(char *filename, struct id_entry *e, char *value
 
 int BPAS_map_bgp_peer_dst_as_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   as_t tmp;
   int x = 0;
   char *endptr;
@@ -458,6 +478,8 @@ int BPAS_map_bgp_peer_dst_as_handler(char *filename, struct id_entry *e, char *v
 
 int BITR_map_mpls_label_bottom_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   as_t tmp;
   int x = 0;
   char *endptr;
@@ -478,6 +500,8 @@ int BITR_map_mpls_label_bottom_handler(char *filename, struct id_entry *e, char 
 
 int BITR_map_mpls_vpn_id_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int x = 0;
   char *endptr;
 
@@ -504,6 +528,8 @@ int BITR_map_mpls_vpn_id_handler(char *filename, struct id_entry *e, char *value
 
 int PT_map_engine_type_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int x = 0, j, len;
 
   e->key.engine_type.neg = pt_check_neg(&value, &((struct id_table *) req->key_value_table)->flags);
@@ -538,6 +564,8 @@ int PT_map_engine_type_handler(char *filename, struct id_entry *e, char *value, 
 
 int PT_map_engine_id_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int x = 0, len;
   char *endptr;
 
@@ -569,6 +597,8 @@ int PT_map_engine_id_handler(char *filename, struct id_entry *e, char *value, st
 
 int PT_map_filter_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   struct pm_pcap_device dev;
   bpf_u_int32 localnet, netmask;  /* pcap library stuff */
   char errbuf[PCAP_ERRBUF_SIZE];
@@ -612,6 +642,8 @@ int PT_map_filter_handler(char *filename, struct id_entry *e, char *value, struc
 
 int PT_map_agent_id_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int x = 0;
 
   e->key.agent_id.neg = pt_check_neg(&value, &((struct id_table *) req->key_value_table)->flags);
@@ -630,6 +662,8 @@ int PT_map_agent_id_handler(char *filename, struct id_entry *e, char *value, str
 
 int PT_map_flowset_id_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int x = 0;
 
   e->key.flowset_id.neg = pt_check_neg(&value, &((struct id_table *) req->key_value_table)->flags);
@@ -648,6 +682,8 @@ int PT_map_flowset_id_handler(char *filename, struct id_entry *e, char *value, s
 
 int PT_map_sample_type_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   char *token = NULL;
   u_int32_t tmp;
   int x = 0;
@@ -730,6 +766,8 @@ int PT_map_sample_type_handler(char *filename, struct id_entry *e, char *value, 
 
 int PT_map_is_bi_flow_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int value_tf, x = 0;
 
   e->key.is_bi_flow.neg = pt_check_neg(&value, &((struct id_table *) req->key_value_table)->flags);
@@ -755,6 +793,8 @@ int PT_map_is_bi_flow_handler(char *filename, struct id_entry *e, char *value, s
 
 int PT_map_is_nsel_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int value_tf, x = 0;
 
   e->key.is_nsel.neg = pt_check_neg(&value, &((struct id_table *) req->key_value_table)->flags);
@@ -780,6 +820,8 @@ int PT_map_is_nsel_handler(char *filename, struct id_entry *e, char *value, stru
 
 int PT_map_is_nel_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int value_tf, x = 0;
 
   e->key.is_nel.neg = pt_check_neg(&value, &((struct id_table *) req->key_value_table)->flags);
@@ -805,6 +847,8 @@ int PT_map_is_nel_handler(char *filename, struct id_entry *e, char *value, struc
 
 int PT_map_direction_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int x = 0;
 
   e->key.direction.neg = pt_check_neg(&value, &((struct id_table *) req->key_value_table)->flags);
@@ -826,6 +870,8 @@ int PT_map_direction_handler(char *filename, struct id_entry *e, char *value, st
 
 int PT_map_nat_event_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int x = 0;
 
   e->key.nat_event.neg = pt_check_neg(&value, &((struct id_table *) req->key_value_table)->flags);
@@ -845,6 +891,8 @@ int PT_map_nat_event_handler(char *filename, struct id_entry *e, char *value, st
 
 int PT_map_src_as_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   as_t tmp;
   int x = 0, have_bgp = 0;
   char *endptr;
@@ -895,6 +943,8 @@ int PT_map_src_as_handler(char *filename, struct id_entry *e, char *value, struc
 
 int PT_map_dst_as_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   as_t tmp;
   int x = 0, have_bgp = 0;
   char *endptr;
@@ -945,6 +995,8 @@ int PT_map_dst_as_handler(char *filename, struct id_entry *e, char *value, struc
 
 int PT_map_peer_src_as_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   as_t tmp;
   int x = 0;
   char *endptr;
@@ -975,6 +1027,8 @@ int PT_map_peer_src_as_handler(char *filename, struct id_entry *e, char *value, 
 
 int PT_map_peer_dst_as_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   as_t tmp;
   int x = 0;
   char *endptr;
@@ -1005,6 +1059,8 @@ int PT_map_peer_dst_as_handler(char *filename, struct id_entry *e, char *value, 
 
 int PT_map_src_local_pref_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   u_int32_t tmp;
   int x = 0;
   char *endptr;
@@ -1035,6 +1091,8 @@ int PT_map_src_local_pref_handler(char *filename, struct id_entry *e, char *valu
 
 int PT_map_local_pref_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   u_int32_t tmp;
   int x = 0;
   char *endptr;
@@ -1065,6 +1123,8 @@ int PT_map_local_pref_handler(char *filename, struct id_entry *e, char *value, s
 
 int PT_map_src_roa_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int x = 0;
 
   e->key.src_roa.neg = pt_check_neg(&value, &((struct id_table *) req->key_value_table)->flags);
@@ -1091,6 +1151,8 @@ int PT_map_src_roa_handler(char *filename, struct id_entry *e, char *value, stru
 
 int PT_map_dst_roa_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int x = 0;
 
   e->key.dst_roa.neg = pt_check_neg(&value, &((struct id_table *) req->key_value_table)->flags);
@@ -1117,6 +1179,8 @@ int PT_map_dst_roa_handler(char *filename, struct id_entry *e, char *value, stru
 
 int PT_map_src_comms_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int x = 0, idx = 0;
   char *token;
 
@@ -1156,6 +1220,8 @@ int PT_map_src_comms_handler(char *filename, struct id_entry *e, char *value, st
 
 int PT_map_comms_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int x = 0, idx = 0;
   char *token;
 
@@ -1195,6 +1261,8 @@ int PT_map_comms_handler(char *filename, struct id_entry *e, char *value, struct
 
 int PT_map_mpls_vpn_rd_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int x = 0, ret;
 
   memset(&e->key.mpls_vpn_rd, 0, sizeof(e->key.mpls_vpn_rd));
@@ -1219,6 +1287,8 @@ int PT_map_mpls_vpn_rd_handler(char *filename, struct id_entry *e, char *value, 
 
 int PT_map_mpls_pw_id_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int x = 0;
   char *endptr;
 
@@ -1241,6 +1311,8 @@ int PT_map_mpls_pw_id_handler(char *filename, struct id_entry *e, char *value, s
 
 int PT_map_src_mac_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int x = 0;
 
   if (req->ptm_c.load_ptm_plugin == PLUGIN_ID_TEE) req->ptm_c.load_ptm_res = TRUE;
@@ -1268,6 +1340,8 @@ int PT_map_src_mac_handler(char *filename, struct id_entry *e, char *value, stru
 
 int PT_map_dst_mac_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int x = 0;
 
   if (req->ptm_c.load_ptm_plugin == PLUGIN_ID_TEE) req->ptm_c.load_ptm_res = TRUE;
@@ -1295,6 +1369,8 @@ int PT_map_dst_mac_handler(char *filename, struct id_entry *e, char *value, stru
 
 int PT_map_vlan_id_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int tmp, x = 0;
 
   if (req->ptm_c.load_ptm_plugin == PLUGIN_ID_TEE) req->ptm_c.load_ptm_res = TRUE;
@@ -1324,6 +1400,8 @@ int PT_map_vlan_id_handler(char *filename, struct id_entry *e, char *value, stru
 
 int PT_map_cvlan_id_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int tmp, x = 0;
 
   e->key.cvlan_id.neg = pt_check_neg(&value, &((struct id_table *) req->key_value_table)->flags);
@@ -1351,6 +1429,8 @@ int PT_map_cvlan_id_handler(char *filename, struct id_entry *e, char *value, str
 
 int PT_map_src_net_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int x = 0;
 
   if (req->ptm_c.load_ptm_plugin == PLUGIN_ID_TEE) req->ptm_c.load_ptm_res = TRUE;
@@ -1378,6 +1458,8 @@ int PT_map_src_net_handler(char *filename, struct id_entry *e, char *value, stru
 
 int PT_map_dst_net_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int x = 0;
 
   if (req->ptm_c.load_ptm_plugin == PLUGIN_ID_TEE) req->ptm_c.load_ptm_res = TRUE;
@@ -1405,6 +1487,8 @@ int PT_map_dst_net_handler(char *filename, struct id_entry *e, char *value, stru
 
 int PT_map_is_multicast_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int value_tf, x = 0;
 
   e->key.is_multicast.neg = pt_check_neg(&value, &((struct id_table *) req->key_value_table)->flags);
@@ -1432,6 +1516,8 @@ int PT_map_is_multicast_handler(char *filename, struct id_entry *e, char *value,
 
 int PT_map_set_tos_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int x = 0, len;
   char *endptr;
 
@@ -1464,6 +1550,8 @@ int PT_map_set_tos_handler(char *filename, struct id_entry *e, char *value, stru
 
 int BTA_map_lookup_bgp_port_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int x = 0, len;
   char *endptr;
 
@@ -1496,6 +1584,8 @@ int BTA_map_lookup_bgp_port_handler(char *filename, struct id_entry *e, char *va
 
 int PT_map_entry_label_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int len;
 
   len = MIN((strlen(value) + 1), MAX_LABEL_LEN);
@@ -1518,6 +1608,8 @@ int PT_map_entry_label_handler(char *filename, struct id_entry *e, char *value, 
 
 int PT_map_jeq_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int len;
 
   len = MIN((strlen(value) + 1), MAX_LABEL_LEN);
@@ -1542,6 +1634,8 @@ int PT_map_jeq_handler(char *filename, struct id_entry *e, char *value, struct p
 
 int PT_map_return_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int res = parse_truefalse(value);
 
   Log(LOG_WARNING, "WARN ( %s/%s ): [%s] RETURN is in the process of being discontinued.\n", config.name, config.type, filename);
@@ -1555,6 +1649,8 @@ int PT_map_return_handler(char *filename, struct id_entry *e, char *value, struc
 
 int PT_map_stack_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   e->stack.func = NULL;
 
   if (*value == '+' || !strncmp(value, "sum", 3)) e->stack.func = PT_stack_sum;
@@ -1565,6 +1661,8 @@ int PT_map_stack_handler(char *filename, struct id_entry *e, char *value, struct
 }
 int PT_map_fwd_status_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start, value \"%s\"", config.name, config.type, value);
+
   int tmp, x = 0;
 
   if (req->ptm_c.load_ptm_plugin == PLUGIN_ID_TEE) req->ptm_c.load_ptm_res = TRUE;
@@ -1594,11 +1692,15 @@ int PT_map_fwd_status_handler(char *filename, struct id_entry *e, char *value, s
 
 int pretag_dummy_ip_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   return FALSE;
 }
 
 int pretag_input_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -1634,6 +1736,8 @@ int pretag_input_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_output_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -1669,6 +1773,8 @@ int pretag_output_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_nexthop_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -1699,6 +1805,8 @@ int pretag_nexthop_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_bgp_nexthop_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -1748,6 +1856,8 @@ int pretag_bgp_nexthop_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_bgp_bgp_nexthop_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct bgp_node *dst_ret = (struct bgp_node *) pptrs->bgp_dst;
   struct bgp_info *info;
@@ -1787,6 +1897,8 @@ int pretag_bgp_bgp_nexthop_handler(struct packet_ptrs *pptrs, void *unused, void
 
 int pretag_engine_type_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
 
@@ -1801,6 +1913,8 @@ int pretag_engine_type_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_engine_id_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   u_int32_t value;
@@ -1832,6 +1946,8 @@ int pretag_engine_id_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_flowset_id_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -1853,6 +1969,8 @@ int pretag_flowset_id_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_filter_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
 
   if (bpf_filter(entry->key.filter.bf_insns, pptrs->packet_ptr, pptrs->pkthdr->len, pptrs->pkthdr->caplen)) 
@@ -1862,6 +1980,8 @@ int pretag_filter_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_src_as_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -1897,6 +2017,8 @@ int pretag_src_as_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_bgp_src_as_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct bgp_node *src_ret = (struct bgp_node *) pptrs->bgp_src;
   struct bgp_info *info;
@@ -1921,6 +2043,8 @@ int pretag_bgp_src_as_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_dst_as_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -1956,6 +2080,8 @@ int pretag_dst_as_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_bgp_dst_as_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct bgp_node *dst_ret = (struct bgp_node *) pptrs->bgp_dst;
   struct bgp_info *info;
@@ -1980,6 +2106,8 @@ int pretag_bgp_dst_as_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_peer_src_as_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct bgp_node *src_ret = (struct bgp_node *) pptrs->bgp_src;
   struct bgp_info *info;
@@ -2005,6 +2133,8 @@ int pretag_peer_src_as_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_peer_dst_as_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct bgp_node *dst_ret = (struct bgp_node *) pptrs->bgp_dst;
   struct bgp_info *info;
@@ -2025,6 +2155,8 @@ int pretag_peer_dst_as_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_src_local_pref_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct bgp_node *src_ret = (struct bgp_node *) pptrs->bgp_src;
   struct bgp_info *info;
@@ -2048,6 +2180,8 @@ int pretag_src_local_pref_handler(struct packet_ptrs *pptrs, void *unused, void 
 
 int pretag_local_pref_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct bgp_node *dst_ret = (struct bgp_node *) pptrs->bgp_dst;
   struct bgp_info *info;
@@ -2066,6 +2200,8 @@ int pretag_local_pref_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_src_roa_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct bgp_node *src_ret = (struct bgp_node *) pptrs->bgp_src;
   u_int8_t roa = ROA_STATUS_UNKNOWN;
@@ -2080,6 +2216,8 @@ int pretag_src_roa_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_dst_roa_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   u_int8_t roa = ROA_STATUS_UNKNOWN;
 
@@ -2089,6 +2227,8 @@ int pretag_dst_roa_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_src_comms_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct bgp_node *src_ret = (struct bgp_node *) pptrs->bgp_src;
   struct bgp_info *info;
@@ -2109,6 +2249,8 @@ int pretag_src_comms_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_comms_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct bgp_node *dst_ret = (struct bgp_node *) pptrs->bgp_dst;
   struct bgp_info *info;
@@ -2129,6 +2271,8 @@ int pretag_comms_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_sample_type_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   u_int8_t flow_type = pptrs->flow_type.traffic_type;
 
@@ -2144,6 +2288,8 @@ int pretag_sample_type_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_is_bi_flow_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
 
   if (entry->key.is_bi_flow.n == pptrs->flow_type.is_bi) return (FALSE | entry->key.is_bi_flow.neg);
@@ -2152,6 +2298,8 @@ int pretag_is_bi_flow_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_is_nsel_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -2180,6 +2328,8 @@ int pretag_is_nsel_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_is_nel_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -2208,6 +2358,8 @@ int pretag_is_nel_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_direction_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -2230,6 +2382,8 @@ int pretag_direction_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_nat_event_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -2252,6 +2406,8 @@ int pretag_nat_event_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_mpls_vpn_rd_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct bgp_node *dst_ret = (struct bgp_node *) pptrs->bgp_dst;
   struct bgp_info *info;
@@ -2272,6 +2428,8 @@ int pretag_mpls_vpn_rd_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_mpls_pw_id_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -2294,6 +2452,8 @@ int pretag_mpls_pw_id_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_src_mac_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -2315,6 +2475,8 @@ int pretag_src_mac_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_dst_mac_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -2336,6 +2498,8 @@ int pretag_dst_mac_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_vlan_id_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -2362,6 +2526,8 @@ int pretag_vlan_id_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_src_net_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -2405,6 +2571,8 @@ int pretag_src_net_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_dst_net_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -2448,6 +2616,8 @@ int pretag_dst_net_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_is_multicast_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -2476,6 +2646,8 @@ int pretag_is_multicast_handler(struct packet_ptrs *pptrs, void *unused, void *e
 
 int pretag_fwd_status_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -2517,6 +2689,8 @@ int pretag_fwd_status_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_cvlan_id_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -2540,6 +2714,8 @@ int pretag_cvlan_id_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int pretag_set_tos_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
 
   memcpy(&pptrs->set_tos, &entry->set_tos, sizeof(s_uint8_t));
@@ -2549,6 +2725,8 @@ int pretag_set_tos_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int BTA_lookup_bgp_port_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
 
   memcpy(&pptrs->lookup_bgp_port, &entry->key.lookup_bgp_port, sizeof(s_uint16_t));
@@ -2558,6 +2736,8 @@ int BTA_lookup_bgp_port_handler(struct packet_ptrs *pptrs, void *unused, void *e
 
 int pretag_id_handler(struct packet_ptrs *pptrs, void *id, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   pm_id_t *tid = id;
 
@@ -2607,6 +2787,8 @@ int pretag_id_handler(struct packet_ptrs *pptrs, void *id, void *e)
 
 int pretag_id2_handler(struct packet_ptrs *pptrs, void *id, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   pm_id_t *tid = id;
 
@@ -2619,6 +2801,8 @@ int pretag_id2_handler(struct packet_ptrs *pptrs, void *id, void *e)
 
 int pretag_label_handler(struct packet_ptrs *pptrs, void *id, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   pt_label_t *out_label = (pt_label_t *) id;
 
@@ -2631,6 +2815,8 @@ int pretag_label_handler(struct packet_ptrs *pptrs, void *id, void *e)
 
 int SF_pretag_input_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   SFSample *sample = (SFSample *) pptrs->f_data;
 
@@ -2640,6 +2826,8 @@ int SF_pretag_input_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int SF_pretag_output_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   SFSample *sample = (SFSample *) pptrs->f_data;
 
@@ -2649,6 +2837,8 @@ int SF_pretag_output_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int SF_pretag_nexthop_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   SFSample *sample = (SFSample *) pptrs->f_data;
 
@@ -2664,6 +2854,8 @@ int SF_pretag_nexthop_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int SF_pretag_bgp_nexthop_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   SFSample *sample = (SFSample *) pptrs->f_data;
 
@@ -2684,6 +2876,8 @@ int SF_pretag_bgp_nexthop_handler(struct packet_ptrs *pptrs, void *unused, void 
 
 int SF_pretag_agent_id_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   SFSample *sample = (SFSample *) pptrs->f_data;
 
@@ -2693,6 +2887,8 @@ int SF_pretag_agent_id_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int SF_pretag_sample_type_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
 
   if (entry->key.sample_type.n == pptrs->sample_type) return (FALSE | entry->key.sample_type.neg);
@@ -2701,6 +2897,8 @@ int SF_pretag_sample_type_handler(struct packet_ptrs *pptrs, void *unused, void 
 
 int SF_pretag_direction_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   SFSample *sample = (SFSample *) pptrs->f_data;
 
@@ -2713,6 +2911,8 @@ int SF_pretag_direction_handler(struct packet_ptrs *pptrs, void *unused, void *e
 
 int SF_pretag_src_as_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   SFSample *sample = (SFSample *) pptrs->f_data;
 
@@ -2725,6 +2925,8 @@ int SF_pretag_src_as_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int SF_pretag_dst_as_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   SFSample *sample = (SFSample *) pptrs->f_data;
 
@@ -2737,6 +2939,8 @@ int SF_pretag_dst_as_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int SF_pretag_src_mac_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   SFSample *sample = (SFSample *) pptrs->f_data;
 
@@ -2746,6 +2950,8 @@ int SF_pretag_src_mac_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int SF_pretag_dst_mac_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   SFSample *sample = (SFSample *) pptrs->f_data;
 
@@ -2755,6 +2961,8 @@ int SF_pretag_dst_mac_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int SF_pretag_vlan_id_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   SFSample *sample = (SFSample *) pptrs->f_data;
 
@@ -2765,6 +2973,8 @@ int SF_pretag_vlan_id_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int SF_pretag_mpls_pw_id_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   SFSample *sample = (SFSample *) pptrs->f_data;
 
@@ -2774,6 +2984,8 @@ int SF_pretag_mpls_pw_id_handler(struct packet_ptrs *pptrs, void *unused, void *
 
 int SF_pretag_src_net_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   SFSample *sample = (SFSample *) pptrs->f_data;
   SFLAddress *sf_addr = &sample->ipsrc;
@@ -2796,6 +3008,8 @@ int SF_pretag_src_net_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int SF_pretag_dst_net_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   SFSample *sample = (SFSample *) pptrs->f_data;
   SFLAddress *sf_addr = &sample->ipdst;
@@ -2818,6 +3032,8 @@ int SF_pretag_dst_net_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int SF_pretag_is_multicast_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   SFSample *sample = (SFSample *) pptrs->f_data;
   u_int8_t multicast;
@@ -2834,6 +3050,8 @@ int SF_pretag_is_multicast_handler(struct packet_ptrs *pptrs, void *unused, void
 
 int PM_pretag_src_as_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   as_t res = search_pretag_src_as(&nt, &nc, pptrs);
 
@@ -2843,6 +3061,8 @@ int PM_pretag_src_as_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int PM_pretag_dst_as_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   as_t res = search_pretag_dst_as(&nt, &nc, pptrs);
 
@@ -2852,6 +3072,8 @@ int PM_pretag_dst_as_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int PM_pretag_input_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
 
   if (entry->key.input.n == pptrs->ifindex_in) return (FALSE | entry->key.input.neg);
@@ -2860,6 +3082,8 @@ int PM_pretag_input_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int PM_pretag_output_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
 
   if (entry->key.output.n == pptrs->ifindex_out) return (FALSE | entry->key.output.neg);
@@ -2868,6 +3092,8 @@ int PM_pretag_output_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int PM_pretag_direction_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
 
   if (entry->key.direction.n == pptrs->direction) return (FALSE | entry->key.output.neg);
@@ -2876,16 +3102,22 @@ int PM_pretag_direction_handler(struct packet_ptrs *pptrs, void *unused, void *e
 
 pm_id_t PT_stack_sum(pm_id_t tag, pm_id_t pre)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   return tag + pre;
 }
 
 pm_id_t PT_stack_logical_or(pm_id_t tag, pm_id_t pre)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   return tag | pre;
 }
 
 int BPAS_bgp_nexthop_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct bgp_node *src_ret = (struct bgp_node *) pptrs->bgp_src;
   struct bgp_info *info;
@@ -2915,6 +3147,8 @@ int BPAS_bgp_nexthop_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int BPAS_bgp_peer_dst_as_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct bgp_node *src_ret = (struct bgp_node *) pptrs->bgp_src;
   struct bgp_info *info;
@@ -2953,6 +3187,8 @@ int BPAS_bgp_peer_dst_as_handler(struct packet_ptrs *pptrs, void *unused, void *
 
 int BITR_mpls_label_bottom_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -2980,6 +3216,8 @@ int BITR_mpls_label_bottom_handler(struct packet_ptrs *pptrs, void *unused, void
 
 int BITR_mpls_vpn_id_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *entry = e;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -3012,6 +3250,8 @@ int BITR_mpls_vpn_id_handler(struct packet_ptrs *pptrs, void *unused, void *e)
 
 int custom_primitives_map_name_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct custom_primitives *table = (struct custom_primitives *) req->key_value_table;
   int idx;
 
@@ -3037,6 +3277,8 @@ int custom_primitives_map_name_handler(char *filename, struct id_entry *e, char 
 
 int custom_primitives_map_field_type_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct custom_primitives *table = (struct custom_primitives *) req->key_value_table;
   char *pen = NULL, *type = NULL, *endptr;
 
@@ -3075,6 +3317,8 @@ int custom_primitives_map_field_type_handler(char *filename, struct id_entry *e,
 
 int custom_primitives_map_packet_ptr_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct custom_primitives *table = (struct custom_primitives *) req->key_value_table;
   struct packet_data_ptr *pd_ptr = NULL; 
   char *layer = NULL, *proto_ptr = NULL, *offset_ptr = NULL, *endptr;
@@ -3176,6 +3420,8 @@ int custom_primitives_map_packet_ptr_handler(char *filename, struct id_entry *e,
 
 int custom_primitives_map_len_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct custom_primitives *table = (struct custom_primitives *) req->key_value_table;
 
   if (table) {
@@ -3207,6 +3453,8 @@ int custom_primitives_map_len_handler(char *filename, struct id_entry *e, char *
 
 int custom_primitives_map_semantics_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct custom_primitives *table = (struct custom_primitives *) req->key_value_table;
 
   if (table) {
@@ -3239,11 +3487,15 @@ int custom_primitives_map_semantics_handler(char *filename, struct id_entry *e, 
 
 void custom_primitives_map_initialize()
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   custom_primitives_type = (COUNT_INDEX_CP | 0x1);
 }
 
 void custom_primitives_map_validate(char *filename, struct plugin_requests *req)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct custom_primitives *table = (struct custom_primitives *) req->key_value_table;
   int valid = FALSE;
 
@@ -3291,6 +3543,8 @@ void custom_primitives_map_validate(char *filename, struct plugin_requests *req)
 
 int PT_map_index_entries_ip_handler(struct id_table_index *idx, int idx_hdlr_no, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *src_e = (struct id_entry *) src; 
 
   if (!idx || !hash_serializer || !src_e) return TRUE; 
@@ -3309,6 +3563,8 @@ int PT_map_index_entries_ip_handler(struct id_table_index *idx, int idx_hdlr_no,
 
 int PT_map_index_entries_ip_af_handler(struct id_table_index *idx, int idx_hdlr_no, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *src_e = (struct id_entry *) src;
 
   if (!idx || !hash_serializer || !src_e) return TRUE;
@@ -3320,6 +3576,8 @@ int PT_map_index_entries_ip_af_handler(struct id_table_index *idx, int idx_hdlr_
 
 int PT_map_index_entries_input_handler(struct id_table_index *idx, int idx_hdlr_no, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *src_e = (struct id_entry *) src;
 
   if (!idx || !hash_serializer || !src_e) return TRUE;
@@ -3331,6 +3589,8 @@ int PT_map_index_entries_input_handler(struct id_table_index *idx, int idx_hdlr_
 
 int PT_map_index_entries_output_handler(struct id_table_index *idx, int idx_hdlr_no, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *src_e = (struct id_entry *) src;
 
   if (!idx || !hash_serializer || !src_e) return TRUE; 
@@ -3342,6 +3602,8 @@ int PT_map_index_entries_output_handler(struct id_table_index *idx, int idx_hdlr
 
 int PT_map_index_entries_bgp_nexthop_handler(struct id_table_index *idx, int idx_hdlr_no, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *src_e = (struct id_entry *) src;
 
   if (!idx || !hash_serializer || !src_e) return TRUE; 
@@ -3353,6 +3615,8 @@ int PT_map_index_entries_bgp_nexthop_handler(struct id_table_index *idx, int idx
 
 int PT_map_index_entries_src_as_handler(struct id_table_index *idx, int idx_hdlr_no, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *src_e = (struct id_entry *) src;
 
   if (!idx || !hash_serializer || !src_e) return TRUE;
@@ -3364,6 +3628,8 @@ int PT_map_index_entries_src_as_handler(struct id_table_index *idx, int idx_hdlr
 
 int PT_map_index_entries_dst_as_handler(struct id_table_index *idx, int idx_hdlr_no, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *src_e = (struct id_entry *) src;
 
   if (!idx || !hash_serializer || !src_e) return TRUE; 
@@ -3375,6 +3641,8 @@ int PT_map_index_entries_dst_as_handler(struct id_table_index *idx, int idx_hdlr
 
 int PT_map_index_entries_peer_src_as_handler(struct id_table_index *idx, int idx_hdlr_no, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *src_e = (struct id_entry *) src;
 
   if (!idx || !hash_serializer || !src_e) return TRUE; 
@@ -3386,6 +3654,8 @@ int PT_map_index_entries_peer_src_as_handler(struct id_table_index *idx, int idx
 
 int PT_map_index_entries_peer_dst_as_handler(struct id_table_index *idx, int idx_hdlr_no, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *src_e = (struct id_entry *) src;
 
   if (!idx || !hash_serializer || !src_e) return TRUE; 
@@ -3397,6 +3667,8 @@ int PT_map_index_entries_peer_dst_as_handler(struct id_table_index *idx, int idx
 
 int PT_map_index_entries_mpls_vpn_rd_handler(struct id_table_index *idx, int idx_hdlr_no, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *src_e = (struct id_entry *) src;
 
   if (!idx || !hash_serializer || !src_e) return TRUE; 
@@ -3408,6 +3680,8 @@ int PT_map_index_entries_mpls_vpn_rd_handler(struct id_table_index *idx, int idx
 
 int PT_map_index_entries_mpls_pw_id_handler(struct id_table_index *idx, int idx_hdlr_no, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *src_e = (struct id_entry *) src;
 
   if (!idx || !hash_serializer || !src_e) return TRUE;
@@ -3419,6 +3693,8 @@ int PT_map_index_entries_mpls_pw_id_handler(struct id_table_index *idx, int idx_
 
 int PT_map_index_entries_mpls_label_bottom_handler(struct id_table_index *idx, int idx_hdlr_no, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *src_e = (struct id_entry *) src;
 
   if (!idx || !hash_serializer || !src_e) return TRUE;
@@ -3430,6 +3706,8 @@ int PT_map_index_entries_mpls_label_bottom_handler(struct id_table_index *idx, i
 
 int PT_map_index_entries_mpls_vpn_id_handler(struct id_table_index *idx, int idx_hdlr_no, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *src_e = (struct id_entry *) src;
 
   if (!idx || !hash_serializer || !src_e) return TRUE;
@@ -3441,6 +3719,8 @@ int PT_map_index_entries_mpls_vpn_id_handler(struct id_table_index *idx, int idx
 
 int PT_map_index_entries_src_mac_handler(struct id_table_index *idx, int idx_hdlr_no, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *src_e = (struct id_entry *) src;
 
   if (!idx || !hash_serializer || !src_e) return TRUE; 
@@ -3452,6 +3732,8 @@ int PT_map_index_entries_src_mac_handler(struct id_table_index *idx, int idx_hdl
 
 int PT_map_index_entries_dst_mac_handler(struct id_table_index *idx, int idx_hdlr_no, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *src_e = (struct id_entry *) src;
 
   if (!idx || !hash_serializer || !src_e) return TRUE;
@@ -3463,6 +3745,8 @@ int PT_map_index_entries_dst_mac_handler(struct id_table_index *idx, int idx_hdl
 
 int PT_map_index_entries_vlan_id_handler(struct id_table_index *idx, int idx_hdlr_no, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *src_e = (struct id_entry *) src;
 
   if (!idx || !hash_serializer || !src_e) return TRUE; 
@@ -3474,6 +3758,8 @@ int PT_map_index_entries_vlan_id_handler(struct id_table_index *idx, int idx_hdl
 
 int PT_map_index_entries_cvlan_id_handler(struct id_table_index *idx, int idx_hdlr_no, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *src_e = (struct id_entry *) src;
 
   if (!idx || !hash_serializer || !src_e) return TRUE;
@@ -3485,6 +3771,8 @@ int PT_map_index_entries_cvlan_id_handler(struct id_table_index *idx, int idx_hd
 
 int PT_map_index_entries_src_net_handler(struct id_table_index *idx, int idx_hdlr_no, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *src_e = (struct id_entry *) src;
 
   if (!idx || !hash_serializer || !src_e) return TRUE;
@@ -3533,6 +3821,8 @@ int PT_map_index_entries_src_net_handler(struct id_table_index *idx, int idx_hdl
 
 int PT_map_index_entries_dst_net_handler(struct id_table_index *idx, int idx_hdlr_no, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *src_e = (struct id_entry *) src;
 
   if (!idx || !hash_serializer || !src_e) return TRUE;
@@ -3581,6 +3871,8 @@ int PT_map_index_entries_dst_net_handler(struct id_table_index *idx, int idx_hdl
 
 int PT_map_index_entries_is_multicast_handler(struct id_table_index *idx, int idx_hdlr_no, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *src_e = (struct id_entry *) src;
 
   if (!idx || !hash_serializer || !src_e) return TRUE;
@@ -3592,6 +3884,8 @@ int PT_map_index_entries_is_multicast_handler(struct id_table_index *idx, int id
 
 int PT_map_index_entries_fwd_status_handler(struct id_table_index *idx, int idx_hdlr_no, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct id_entry *src_e = (struct id_entry *) src;
 
   if (!idx || !hash_serializer || !src_e) return TRUE;
@@ -3603,6 +3897,8 @@ int PT_map_index_entries_fwd_status_handler(struct id_table_index *idx, int idx_
 
 int PT_map_index_fdata_ip_handler(struct id_table_index *idx, int idx_hdlr, int idx_netmask, struct id_entry *e, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct packet_ptrs *pptrs = (struct packet_ptrs *) src;
   struct sockaddr *sa = (struct sockaddr *) pptrs->f_agent;
   SFSample *sample = (SFSample *)pptrs->f_data;
@@ -3625,11 +3921,22 @@ int PT_map_index_fdata_ip_handler(struct id_table_index *idx, int idx_hdlr, int 
 
   hash_serial_append(hash_serializer, (char *)&e->key.agent_ip.a, sizeof(struct host_addr), FALSE);
 
+  {
+    char buf[INET6_ADDRSTRLEN] = "unknown";
+    if (e->key.agent_ip.a.family == AF_INET)
+      inet_ntop(AF_INET, &e->key.agent_ip.a.address.ipv4, buf, sizeof(buf));
+    else if (e->key.agent_ip.a.family == AF_INET6)
+      inet_ntop(AF_INET6, &e->key.agent_ip.a.address.ipv6, buf, sizeof(buf));
+    UWE("( %s/%s ): end, ip address %s", config.name, config.type, buf);
+  }
+
   return FALSE;
 }
 
 int PT_map_index_fdata_ip_af_handler(struct id_table_index *idx, int idx_hdlr, int idx_netmask, struct id_entry *e, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct packet_ptrs *pptrs = (struct packet_ptrs *) src;
   struct sockaddr *sa = (struct sockaddr *) pptrs->f_agent;
   SFSample *sample = (SFSample *)pptrs->f_data;
@@ -3650,11 +3957,18 @@ int PT_map_index_fdata_ip_af_handler(struct id_table_index *idx, int idx_hdlr, i
 
   hash_serial_append(hash_serializer, (char *)&e->key.agent_ip.a.family, sizeof(u_int8_t), FALSE);
 
+  UWE("( %s/%s ): end, address family %d (%s)",
+      config.name, config.type, e->key.agent_ip.a.family,
+      e->key.agent_ip.a.family == AF_INET ? "AF_INET" :
+      e->key.agent_ip.a.family == AF_INET6 ? "AF_INET6" : "unknown");
+
   return FALSE;
 }
 
 int PT_map_index_fdata_input_handler(struct id_table_index *idx, int idx_hdlr, int idx_netmask, struct id_entry *e, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct packet_ptrs *pptrs = (struct packet_ptrs *) src;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -3702,6 +4016,8 @@ int PT_map_index_fdata_input_handler(struct id_table_index *idx, int idx_hdlr, i
 
 int PT_map_index_fdata_output_handler(struct id_table_index *idx, int idx_hdlr, int idx_netmask, struct id_entry *e, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct packet_ptrs *pptrs = (struct packet_ptrs *) src;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -3749,6 +4065,8 @@ int PT_map_index_fdata_output_handler(struct id_table_index *idx, int idx_hdlr, 
 
 int PT_map_index_fdata_bgp_nexthop_handler(struct id_table_index *idx, int idx_hdlr, int idx_netmask, struct id_entry *e, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct packet_ptrs *pptrs = (struct packet_ptrs *) src;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -3832,6 +4150,8 @@ int PT_map_index_fdata_bgp_nexthop_handler(struct id_table_index *idx, int idx_h
 
 int PT_map_index_fdata_src_as_handler(struct id_table_index *idx, int idx_hdlr, int idx_netmask, struct id_entry *e, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct packet_ptrs *pptrs = (struct packet_ptrs *) src;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -3883,6 +4203,8 @@ int PT_map_index_fdata_src_as_handler(struct id_table_index *idx, int idx_hdlr, 
 
 int PT_map_index_fdata_dst_as_handler(struct id_table_index *idx, int idx_hdlr, int idx_netmask, struct id_entry *e, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct packet_ptrs *pptrs = (struct packet_ptrs *) src;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -3934,6 +4256,8 @@ int PT_map_index_fdata_dst_as_handler(struct id_table_index *idx, int idx_hdlr, 
 
 int PT_map_index_fdata_peer_src_as_handler(struct id_table_index *idx, int idx_hdlr, int idx_netmask, struct id_entry *e, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct packet_ptrs *pptrs = (struct packet_ptrs *) src;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -3987,6 +4311,8 @@ int PT_map_index_fdata_peer_src_as_handler(struct id_table_index *idx, int idx_h
 
 int PT_map_index_fdata_peer_dst_as_handler(struct id_table_index *idx, int idx_hdlr, int idx_netmask, struct id_entry *e, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct packet_ptrs *pptrs = (struct packet_ptrs *) src;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -4035,6 +4361,8 @@ int PT_map_index_fdata_peer_dst_as_handler(struct id_table_index *idx, int idx_h
 
 int PT_map_index_fdata_mpls_vpn_rd_handler(struct id_table_index *idx, int idx_hdlr, int idx_netmask, struct id_entry *e, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct packet_ptrs *pptrs = (struct packet_ptrs *) src;
   struct bgp_node *dst_ret = (struct bgp_node *) pptrs->bgp_dst;
   struct bgp_info *info;
@@ -4057,6 +4385,8 @@ int PT_map_index_fdata_mpls_vpn_rd_handler(struct id_table_index *idx, int idx_h
 
 int PT_map_index_fdata_mpls_pw_id_handler(struct id_table_index *idx, int idx_hdlr, int idx_netmask, struct id_entry *e, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct packet_ptrs *pptrs = (struct packet_ptrs *) src;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -4084,6 +4414,8 @@ int PT_map_index_fdata_mpls_pw_id_handler(struct id_table_index *idx, int idx_hd
 
 int PT_map_index_fdata_mpls_vpn_id_handler(struct id_table_index *idx, int idx_hdlr, int idx_netmask, struct id_entry *e, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct packet_ptrs *pptrs = (struct packet_ptrs *) src;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -4112,6 +4444,8 @@ int PT_map_index_fdata_mpls_vpn_id_handler(struct id_table_index *idx, int idx_h
 
 int PT_map_index_fdata_mpls_label_bottom_handler(struct id_table_index *idx, int idx_hdlr, int idx_netmask, struct id_entry *e, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct packet_ptrs *pptrs = (struct packet_ptrs *) src;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -4140,6 +4474,8 @@ int PT_map_index_fdata_mpls_label_bottom_handler(struct id_table_index *idx, int
 
 int PT_map_index_fdata_src_mac_handler(struct id_table_index *idx, int idx_hdlr, int idx_netmask, struct id_entry *e, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct packet_ptrs *pptrs = (struct packet_ptrs *) src;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -4166,6 +4502,8 @@ int PT_map_index_fdata_src_mac_handler(struct id_table_index *idx, int idx_hdlr,
 
 int PT_map_index_fdata_dst_mac_handler(struct id_table_index *idx, int idx_hdlr, int idx_netmask, struct id_entry *e, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct packet_ptrs *pptrs = (struct packet_ptrs *) src;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -4192,6 +4530,8 @@ int PT_map_index_fdata_dst_mac_handler(struct id_table_index *idx, int idx_hdlr,
 
 int PT_map_index_fdata_vlan_id_handler(struct id_table_index *idx, int idx_hdlr, int idx_netmask, struct id_entry *e, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct packet_ptrs *pptrs = (struct packet_ptrs *) src;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -4224,6 +4564,8 @@ int PT_map_index_fdata_vlan_id_handler(struct id_table_index *idx, int idx_hdlr,
 
 int PT_map_index_fdata_cvlan_id_handler(struct id_table_index *idx, int idx_hdlr, int idx_netmask, struct id_entry *e, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct packet_ptrs *pptrs = (struct packet_ptrs *) src;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -4248,6 +4590,8 @@ int PT_map_index_fdata_cvlan_id_handler(struct id_table_index *idx, int idx_hdlr
 
 int PT_map_index_fdata_src_net_handler(struct id_table_index *idx, int idx_hdlr, int idx_netmask, struct id_entry *e, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct packet_ptrs *pptrs = (struct packet_ptrs *) src;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -4322,6 +4666,8 @@ int PT_map_index_fdata_src_net_handler(struct id_table_index *idx, int idx_hdlr,
 
 int PT_map_index_fdata_dst_net_handler(struct id_table_index *idx, int idx_hdlr, int idx_netmask, struct id_entry *e, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct packet_ptrs *pptrs = (struct packet_ptrs *) src;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -4396,6 +4742,8 @@ int PT_map_index_fdata_dst_net_handler(struct id_table_index *idx, int idx_hdlr,
 
 int PT_map_index_fdata_is_multicast_handler(struct id_table_index *idx, int idx_hdlr, int idx_netmask, struct id_entry *e, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct packet_ptrs *pptrs = (struct packet_ptrs *) src;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -4424,6 +4772,8 @@ int PT_map_index_fdata_is_multicast_handler(struct id_table_index *idx, int idx_
 
 int PT_map_index_fdata_fwd_status_handler(struct id_table_index *idx, int idx_hdlr, int idx_netmask, struct id_entry *e, pm_hash_serial_t *hash_serializer, void *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct packet_ptrs *pptrs = (struct packet_ptrs *) src;
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
@@ -4448,6 +4798,8 @@ int PT_map_index_fdata_fwd_status_handler(struct id_table_index *idx, int idx_hd
 
 void pm_pcap_interfaces_map_validate(char *filename, struct plugin_requests *req)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct pm_pcap_interfaces *table = (struct pm_pcap_interfaces *) req->key_value_table;
   int valid = FALSE;
 
@@ -4476,6 +4828,8 @@ void pm_pcap_interfaces_map_validate(char *filename, struct plugin_requests *req
 
 int pm_pcap_interfaces_map_ifindex_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct pm_pcap_interfaces *table = (struct pm_pcap_interfaces *) req->key_value_table;
   char *endp;
 
@@ -4502,6 +4856,8 @@ int pm_pcap_interfaces_map_ifindex_handler(char *filename, struct id_entry *e, c
 
 int pm_pcap_interfaces_map_ifname_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct pm_pcap_interfaces *table = (struct pm_pcap_interfaces *) req->key_value_table;
 
   if (table && table->list) {
@@ -4527,6 +4883,8 @@ int pm_pcap_interfaces_map_ifname_handler(char *filename, struct id_entry *e, ch
 
 int pm_pcap_interfaces_map_direction_handler(char *filename, struct id_entry *e, char *value, struct plugin_requests *req, int acct_type)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct pm_pcap_interfaces *table = (struct pm_pcap_interfaces *) req->key_value_table;
 
   if (table && table->list) {
@@ -4554,6 +4912,8 @@ int pm_pcap_interfaces_map_direction_handler(char *filename, struct id_entry *e,
 
 void pm_pcap_interfaces_map_initialize(struct pm_pcap_interfaces *map)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   memset(map, 0, sizeof(struct pm_pcap_interfaces));
 
   /* Setting up the list */
@@ -4567,6 +4927,8 @@ void pm_pcap_interfaces_map_initialize(struct pm_pcap_interfaces *map)
 
 void pm_pcap_interfaces_map_load(struct pm_pcap_interfaces *map)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   struct plugin_requests req;
   int pm_pcap_interfaces_allocated = FALSE;
 
@@ -4578,6 +4940,8 @@ void pm_pcap_interfaces_map_load(struct pm_pcap_interfaces *map)
 
 void pm_pcap_interfaces_map_destroy(struct pm_pcap_interfaces *map)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   int idx;
 
   for (idx = 0; idx < map->num; idx++) memset(&map->list[idx], 0, sizeof(struct pm_pcap_interface));
@@ -4587,6 +4951,8 @@ void pm_pcap_interfaces_map_destroy(struct pm_pcap_interfaces *map)
 
 void pm_pcap_interfaces_map_copy(struct pm_pcap_interfaces *dst, struct pm_pcap_interfaces *src)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   int idx;
 
   for (idx = 0; idx < src->num; idx++) memcpy(&dst->list[idx], &src->list[idx], sizeof(struct pm_pcap_interface)); 
@@ -4596,6 +4962,8 @@ void pm_pcap_interfaces_map_copy(struct pm_pcap_interfaces *dst, struct pm_pcap_
 
 u_int32_t pm_pcap_interfaces_map_lookup_ifname(struct pm_pcap_interfaces *map, char *ifname)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   u_int32_t ifindex = 0;
   int idx;
 
@@ -4611,6 +4979,8 @@ u_int32_t pm_pcap_interfaces_map_lookup_ifname(struct pm_pcap_interfaces *map, c
 
 struct pm_pcap_interface *pm_pcap_interfaces_map_getentry_by_ifname(struct pm_pcap_interfaces *map, char *ifname)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   int idx;
 
   for (idx = 0; idx < map->num; idx++) {
@@ -4624,6 +4994,8 @@ struct pm_pcap_interface *pm_pcap_interfaces_map_getentry_by_ifname(struct pm_pc
 
 struct pm_pcap_interface *pm_pcap_interfaces_map_getentry_by_idx(struct pm_pcap_interfaces *map, int idx)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   if (idx < map->num) {
     return &map->list[idx];
   }
@@ -4633,6 +5005,8 @@ struct pm_pcap_interface *pm_pcap_interfaces_map_getentry_by_idx(struct pm_pcap_
 
 char *pm_pcap_interfaces_map_getnext_ifname(struct pm_pcap_interfaces *map, int *index)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   char *ifname = NULL;
   int loc_idx = (*index);
 
@@ -4646,6 +5020,8 @@ char *pm_pcap_interfaces_map_getnext_ifname(struct pm_pcap_interfaces *map, int 
 
 char *pm_pcap_interfaces_map_get_ifname(struct pm_pcap_interfaces *map, int index)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   char *ifname = NULL;
 
   if (index < map->num) {
@@ -4657,6 +5033,8 @@ char *pm_pcap_interfaces_map_get_ifname(struct pm_pcap_interfaces *map, int inde
 
 int pm_pcap_interfaces_map_get_direction(struct pm_pcap_interfaces *map, int index)
 {
+  UWE("( %s/%s ): start", config.name, config.type);
+
   int direction = 0;
 
   if (index < map->num) {
