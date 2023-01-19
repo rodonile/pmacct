@@ -776,6 +776,8 @@ int dynname_text_token_handler(char *s, int slen, char *static_arg, void *dyn_ar
     strcat(s, static_arg);
   }
   else {
+    Log(LOG_WARNING, "WARN ( %s/%s ): %s buffer length too small, %d vs. %d\n",
+        config.name, config.type, __FUNCTION__, slen, st_len + sa_len);
     ret = ERR;
   }
 
@@ -799,6 +801,8 @@ int dwi_proc_name_handler(char *s, int slen, char *static_arg, void *dyn_arg)
     strcat(s, name);
   }
   else {
+    Log(LOG_WARNING, "WARN ( %s/%s ): %s buffer length too small, %d vs. %lu\n",
+        config.name, config.type, __FUNCTION__, slen, strlen(name) + st_len);
     ret = ERR;
   }
 
@@ -816,6 +820,8 @@ int dwi_writer_pid_handler(char *s, int slen, char *static_arg, void *dyn_arg)
     strcat(s, pid);
   }
   else {
+    Log(LOG_WARNING, "WARN ( %s/%s ): %s buffer length too small, %d vs. %lu\n",
+        config.name, config.type, __FUNCTION__, slen, strlen(pid) + st_len);
     ret = ERR;
   }
 
@@ -832,6 +838,8 @@ int dwi_pmacct_build_handler(char *s, int slen, char *static_arg, void *dyn_arg)
     strcat(s, PMACCT_BUILD);
   }
   else {
+    Log(LOG_WARNING, "WARN ( %s/%s ): %s buffer length too small, %d vs. %d\n",
+        config.name, config.type, __FUNCTION__, slen, pb_len + st_len);
     ret = ERR;
   }
 
