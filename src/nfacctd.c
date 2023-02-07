@@ -1929,6 +1929,7 @@ void process_v9_packet(unsigned char *pkt, u_int16_t len, struct packet_ptrs_vec
 
       if ((flowsetlen - flowoff) < sizeof(struct template_hdr_v9)) {
 	/* skip padding */
+        UWE("( %s/%s ): skip padding [template: 0 NetFlow v9, 2 IPFIX]", config.name, config.type);
 	break;
       }
 
@@ -1977,6 +1978,7 @@ void process_v9_packet(unsigned char *pkt, u_int16_t len, struct packet_ptrs_vec
 
       if ((flowsetlen - flowoff) < sizeof(struct options_template_hdr_v9)) {
 	/* skip padding */
+        UWE("( %s/%s ): skip padding [options template: 1 NetFlow v9, 3 IPFIX]", config.name, config.type);
 	break;
       }
 
@@ -2325,14 +2327,21 @@ void process_v9_packet(unsigned char *pkt, u_int16_t len, struct packet_ptrs_vec
         return;
       }
       
+      UWE("( %s/%s ): handling padding [template type=1 - options data packets]", config.name, config.type);
       pkt += (flowsetlen-flowoff); /* handling padding */
       off += flowsetlen;
     }
     else {
-      UWE("( %s/core ): got data packet? (template type %d)",
-          config.name, tpl->template_type);
+      UWE("( %s/core ): got data packet? (template type %d)", config.name, tpl->template_type);
+      UWE("( %s/core ): starting flowset loop", config.name);
 
       while (flowoff+tpl->len <= flowsetlen) {
+        /* Debugging output for knowing where we are...*/
+        UWE("( %s/core ): --> flowoff=%d", config.name, flowoff);
+        UWE("( %s/core ): --> flowsetlen=%d", config.name, flowsetlen);
+        UWE("( %s/core ): --> tpl->len=%d", config.name, tpl->len);
+        UWE("( %s/core ): --> tpl->vlen=%d", config.name, tpl->vlen);
+
         /* Let's bake offsets and lengths if we have variable-length fields */
         if (tpl->vlen) {
 	  int ret;
@@ -3142,8 +3151,13 @@ void process_v9_packet(unsigned char *pkt, u_int16_t len, struct packet_ptrs_vec
         return;
       }
 
+      UWE("( %s/%s ): handling padding [template type!=1] - data packets", config.name, config.type);
       pkt += (flowsetlen-flowoff); /* handling padding */
       off += flowsetlen; 
+      UWE("( %s/%s ): --> flowsetlen=%d, flowoff=%d", config.name, config.type, flowsetlen, flowoff);
+      UWE("( %s/%s ): --> pkt=%d, off=%d", config.name, config.type, pkt, off);
+      UWE("( %s/%s ): --> len=%d, tpl->len=%d", config.name, config.type, len, tpl->len);
+      UWE("( %s/%s ): --> tpl->vlen=%d", config.name, config.type, tpl->vlen);
     }
   }
   else { /* unsupported flowset */
