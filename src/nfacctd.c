@@ -1429,6 +1429,7 @@ int main(int argc,char **argv, char **envp)
 
   /* Main loop */
   for (;;) {
+    UWE("( %s/core ): start main loop", config.name);
     sigprocmask(SIG_BLOCK, &signal_set, NULL);
 
     if (config.pcap_savefile) {
@@ -1672,6 +1673,8 @@ int main(int argc,char **argv, char **envp)
 void process_v5_packet(unsigned char *pkt, u_int16_t len, struct packet_ptrs *pptrs,
 		struct plugin_requests *req, u_int16_t version, struct NF_dissect *tee_dissect)
 {
+  UWE("( %s/core ): start", config.name);
+
   struct struct_header_v5 *hdr_v5 = (struct struct_header_v5 *)pkt;
   struct struct_export_v5 *exp_v5;
   unsigned short int count = ntohs(hdr_v5->count);
@@ -1766,12 +1769,16 @@ void process_v5_packet(unsigned char *pkt, u_int16_t len, struct packet_ptrs *pp
     xflow_status_table.tot_bad_datagrams++;
     return;
   }
+
+  UWE("( %s/core ): end", config.name);
 } 
 
 void process_v9_packet(unsigned char *pkt, u_int16_t len, struct packet_ptrs_vector *pptrsv,
 		struct plugin_requests *req, u_int16_t version, struct NF_dissect *tee_dissect,
 		int *has_templates)
 {
+  UWE("( %s/core ): start (version %d)", config.name, version);
+
   struct struct_header_v9 *hdr_v9 = (struct struct_header_v9 *)pkt;
   struct struct_header_ipfix *hdr_v10 = (struct struct_header_ipfix *)pkt;
   struct template_hdr_v9 *template_hdr = NULL;
@@ -1965,11 +1972,13 @@ void process_v9_packet(unsigned char *pkt, u_int16_t len, struct packet_ptrs_vec
       if (!tpl) return;
 
       if (fid == 3 /* IPFIX */) {
+        UWE("( %s/core ): got ipfix packet (fid 3)", config.name);
 	tpl_len = sizeof(struct options_template_hdr_v9) +
 		  (((ntohs(opt_template_hdr->scope_len) + ntohs(opt_template_hdr->option_len)) * sizeof(struct template_field_v9)) +
 		  (pens * sizeof(u_int32_t)));
       }
       else if (fid == 1 /* NetFlow v9 */) {
+        UWE("( %s/core ): got netflow v9 packet (fid 1)", config.name);
 	tpl_len = sizeof(struct options_template_hdr_v9) +
 		  ((ntohs(opt_template_hdr->scope_len) + ntohs(opt_template_hdr->option_len)) +
 		  (pens * sizeof(u_int32_t)));
@@ -1983,6 +1992,8 @@ void process_v9_packet(unsigned char *pkt, u_int16_t len, struct packet_ptrs_vec
     off += flowsetlen;
   }
   else if (fid >= 256) { /* data */
+    UWE("( %s/core ): got data packet (fid %d)", config.name, fid);
+
     if (off+flowsetlen > len) { 
       notify_malf_packet(LOG_INFO, "INFO", "unable to read next Data Flowset (incomplete NetFlow v9/IPFIX packet)",
 		      (struct sockaddr *) pptrsv->v4.f_agent, FlowSeq);
@@ -2008,6 +2019,8 @@ void process_v9_packet(unsigned char *pkt, u_int16_t len, struct packet_ptrs_vec
       struct xflow_status_entry *entry;
       struct xflow_status_entry_sampling *sentry, *ssaved;
       struct xflow_status_entry_class *centry, *csaved;
+
+      UWE("( %s/core ): got options packet (template type 1)", config.name);
 
       /* broadcast the whole flowset over */
       if (tee_dissect) {
@@ -2303,6 +2316,9 @@ void process_v9_packet(unsigned char *pkt, u_int16_t len, struct packet_ptrs_vec
       off += flowsetlen;
     }
     else {
+      UWE("( %s/core ): got data packet? (template type %d)",
+          config.name, tpl->template_type);
+
       while (flowoff+tpl->len <= flowsetlen) {
         /* Let's bake offsets and lengths if we have variable-length fields */
         if (tpl->vlen) {
@@ -3138,11 +3154,15 @@ void process_v9_packet(unsigned char *pkt, u_int16_t len, struct packet_ptrs_vec
 
     if (entry) entry->inc = FlowSeqInc;
   }
+
+  UWE("( %s/core ): end", config.name);
 }
 
 void process_raw_packet(unsigned char *pkt, u_int16_t len, struct packet_ptrs_vector *pptrsv,
                 struct plugin_requests *req)
 {
+  UWE("( %s/core ): start", config.name);
+
   struct packet_ptrs *pptrs = &pptrsv->v4;
   u_int16_t nfv;
 
@@ -3229,6 +3249,8 @@ void process_raw_packet(unsigned char *pkt, u_int16_t len, struct packet_ptrs_ve
   req->ptm_c.exec_ptm_res = FALSE;
 
   exec_plugins(pptrs, req);
+
+  UWE("( %s/core ): end", config.name);
 }
 
 void NF_compute_once()
@@ -3271,6 +3293,8 @@ void NF_compute_once()
 
 void NF_evaluate_flow_type(struct flow_chars *flow_type, struct template_cache_entry *tpl, struct packet_ptrs *pptrs)
 {
+  UWE("( %s/core ): start", config.name);
+
   u_int8_t ret = FALSE;
   u_int8_t have_ip_proto = FALSE;
 
@@ -3386,10 +3410,14 @@ void NF_evaluate_flow_type(struct flow_chars *flow_type, struct template_cache_e
   if (tpl->template_type == 1) ret = NF9_FTYPE_OPTION;
 
   flow_type->traffic_type = ret;
+
+  UWE("( %s/core ): end, flow type %d", config.name, ret);
 }
 
 u_int16_t NF_evaluate_direction(struct template_cache_entry *tpl, struct packet_ptrs *pptrs)
 {
+  UWE("( %s/core ): start", config.name);
+
   u_int16_t ret = DIRECTION_IN;
 
   if (tpl->fld[NF9_DIRECTION].count && *(pptrs->f_data+tpl->fld[NF9_DIRECTION].off[0]) == 1)
@@ -3438,6 +3466,8 @@ void reset_dummy_v4(struct packet_ptrs *pptrs, u_char *dummy_packet)
 
 int NF_find_id(struct id_table *t, struct packet_ptrs *pptrs, pm_id_t *tag, pm_id_t *tag2)
 {
+  UWE("( %s/core ): start", config.name);
+
   struct xflow_status_entry *entry = (struct xflow_status_entry *) pptrs->f_status;
   struct sockaddr *sa = NULL;
   u_char *saved_f_agent = NULL;
@@ -3510,6 +3540,8 @@ int NF_find_id(struct id_table *t, struct packet_ptrs *pptrs, pm_id_t *tag, pm_i
   exit_lane:
   if (entry && entry->exp_sa.sa_family) pptrs->f_agent = saved_f_agent; 
 
+  UWE("( %s/core ): end, id %lu", config.name, ret);
+
   return ret;
 }
 
@@ -3554,6 +3586,7 @@ void NF_process_classifiers(struct packet_ptrs *pptrs_main, struct packet_ptrs *
   if (tpl->fld[NF9_APPLICATION_ID].len[0] == 2 ||
       tpl->fld[NF9_APPLICATION_ID].len[0] == 3 ||
       tpl->fld[NF9_APPLICATION_ID].len[0] == 5) {
+    UWE("( %s/core ): start", config.name);
     struct xflow_status_entry *entry = (struct xflow_status_entry *) pptrs_main->f_status;
     struct xflow_status_entry *gentry = (struct xflow_status_entry *) pptrs_main->f_status_g;
     pm_class_t class_id = 0;
@@ -3587,6 +3620,8 @@ pm_class_t NF_evaluate_classifiers(struct xflow_status_entry_class *entry, pm_cl
 
 void nfv9_datalink_frame_section_handler(struct packet_ptrs *pptrs)
 {
+  UWE("( %s/core ): start", config.name);
+
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
   struct utpl_field *utpl = NULL;
   u_int16_t frame_type = NF9_DL_F_TYPE_UNKNOWN, t16, idx;
@@ -3637,6 +3672,8 @@ void nfv9_datalink_frame_section_handler(struct packet_ptrs *pptrs)
 #ifdef WITH_KAFKA
 void NF_init_kafka_host(void *kh)
 {
+  UWE("( %s/core ): start", config.name);
+
   struct p_kafka_host *kafka_host = kh;
 
   p_kafka_init_host(kafka_host, config.nfacctd_kafka_config_file);
@@ -3651,6 +3688,8 @@ void NF_init_kafka_host(void *kh)
 #ifdef WITH_ZMQ
 void NF_init_zmq_host(void *zh, int *pipe_fd)
 {
+  UWE("( %s/core ): start", config.name);
+
   struct p_zmq_host *zmq_host = zh;
   char log_id[SHORTBUFLEN];
 
@@ -3774,6 +3813,8 @@ void NF_mpls_vpn_rd_from_options(struct packet_ptrs *pptrs)
 /* Get RD from IPFIX/NFv9 Data Packet for correlation with BGP/BMP */
 void NF_mpls_vpn_rd_from_ie90(struct packet_ptrs *pptrs)
 {
+  UWE("( %s/core ): start", config.name);
+
   struct struct_header_v5 *hdr = (struct struct_header_v5 *) pptrs->f_header;
   struct template_cache_entry *tpl = (struct template_cache_entry *) pptrs->f_tpl;
 
