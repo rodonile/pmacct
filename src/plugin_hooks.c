@@ -337,6 +337,7 @@ void load_plugins(struct plugin_requests *req)
 	  req->ptm_c.load_ptm_res = FALSE;
 	}
 
+        UWE("( %s/%s ): plugin hooks - loading pretag map...", config.name, config.type);
         load_pre_tag_map(config.acct_type, list->cfg.pre_tag_map, &list->cfg.ptm, req, &list->cfg.ptm_alloc,
                          list->cfg.maps_entries, list->cfg.maps_row_len);
 
