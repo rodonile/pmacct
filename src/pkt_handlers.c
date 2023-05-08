@@ -4017,9 +4017,6 @@ void NF_custom_primitives_handler(struct channels_list_entry *chptr, struct pack
             cpe->name, cpe->pen, cpe->field_type, cpe->len, cpe->alloc_len,
             cpe->semantics, cpe->repeat_id);
 	if (cpe->field_type < NF9_MAX_DEFINED_FIELD && !cpe->pen) {
-          UWE("( %s/%s ): ordered template field (type < %d), no pen, offset %d, len %d",
-              config.name, config.type, NF9_MAX_DEFINED_FIELD,
-              tpl->tpl[cpe->field_type].off, tpl->tpl[cpe->field_type].len);
 	  if (cpe->semantics == CUSTOM_PRIMITIVE_TYPE_RAW) {
             unsigned char hexbuf[cpe->alloc_len];
             int hexbuflen;

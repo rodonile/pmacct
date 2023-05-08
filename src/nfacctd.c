@@ -3155,7 +3155,7 @@ void process_v9_packet(unsigned char *pkt, u_int16_t len, struct packet_ptrs_vec
       pkt += (flowsetlen-flowoff); /* handling padding */
       off += flowsetlen; 
       UWE("( %s/%s ): --> flowsetlen=%d, flowoff=%d", config.name, config.type, flowsetlen, flowoff);
-      UWE("( %s/%s ): --> pkt=%d, off=%d", config.name, config.type, pkt, off);
+      //UWE("( %s/%s ): --> pkt=%d, off=%d", config.name, config.type, pkt, off);
       UWE("( %s/%s ): --> len=%d, tpl->len=%d", config.name, config.type, len, tpl->len);
       UWE("( %s/%s ): --> tpl->vlen=%d", config.name, config.type, tpl->vlen);
     }
