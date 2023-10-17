@@ -23,6 +23,7 @@
 #include "pmacct.h"
 #include "bgp/bgp.h"
 #include "bmp.h"
+#include "pmacct_gauze_lib/pmacct_gauze_lib.h"
 #if defined WITH_RABBITMQ
 #include "amqp_common.h"
 #endif
@@ -46,7 +47,6 @@ u_int32_t bmp_process_packet(char *bmp_packet, u_int32_t len, struct bmp_peer *b
   bms = bgp_select_misc_db(peer->type);
 
   if (!bms) return FALSE;
-
   if (len < sizeof(struct bmp_common_hdr)) {
     Log(LOG_INFO, "INFO ( %s/%s ): [%s] packet discarded: failed bmp_get_and_check_length() BMP common hdr\n",
 	config.name, bms->log_str, peer->addr_str);
@@ -54,7 +54,47 @@ u_int32_t bmp_process_packet(char *bmp_packet, u_int32_t len, struct bmp_peer *b
   }
 
   for (msg_start_len = pkt_remaining_len = len; pkt_remaining_len; msg_start_len = pkt_remaining_len) {
-    if (!(bch = (struct bmp_common_hdr *) bmp_get_and_check_length(&bmp_packet_ptr, &pkt_remaining_len, sizeof(struct bmp_common_hdr)))) { 
+
+    // netgauze_print_packet(bmp_packet, len);
+    ParseResultEnum parse_result = netgauze_parse_packet(bmp_packet, len);
+
+    if (parse_result.tag == ParseFailure) {
+      Log(LOG_INFO, "INFO ( %s/%s ): [%s] packet discarded: %s\n", config.name, bms->log_str, peer->addr_str,
+          parse_error_str(&parse_result.parse_failure));
+      parse_result_free(parse_result);
+      return msg_start_len;
+    }
+
+    ParseOk parse_ok = parse_result.parse_success;
+    bch = &parse_ok.common_header;
+
+    Log(LOG_INFO, "INFO ( %s/%s ): [%s] packet received version %u, length %u, type %u\n", config.name, bms->log_str, peer->addr_str, bch->version, bch->len, bch->type);
+/*
+    if (parse_ok.peer_header.tag == Some_bmp_peer_hdr) {
+      struct host_addr ip;
+      u_int8_t family;
+      const char* ip_str;
+      bmp_peer_hdr_get_v_flag(&parse_ok.peer_header.some, &family);
+      bmp_peer_hdr_get_peer_ip(&parse_ok.peer_header.some, &ip, &family);
+
+      if (family == AF_INET) {
+        ip_str = inet_ntoa(*(struct in_addr*)&parse_ok.peer_header.some.addr[3]);
+      } else {
+        ip_str = inet6_ntoa(*(struct in6_addr*)parse_ok.peer_header.some.addr);
+      }
+
+    char rd_str[SHORTSHORTBUFLEN];
+      rd_t rd;
+      bmp_peer_hdr_get_rd(&parse_ok.peer_header.some, &rd);
+      bgp_rd2str(rd_str, &rd);
+
+      // Log(LOG_INFO, "INFO ( %s/%s ): [%s] has peer header inet=%d ip=%s rd=%s\n", config.name, bms->log_str, peer->addr_str, family, ip_str, rd_str);
+    }
+    */
+
+
+    /* no more checks in pmacct
+    if (!(bch = (struct bmp_common_hdr *) bmp_get_and_check_length(&bmp_packet_ptr, &pkt_remaining_len, sizeof(struct bmp_common_hdr)))) {
       return msg_start_len;
     }
 
@@ -63,9 +103,11 @@ u_int32_t bmp_process_packet(char *bmp_packet, u_int32_t len, struct bmp_peer *b
 	  config.name, bms->log_str, peer->addr_str, bch->version);
       return FALSE;
     }
+    */
 
     peer->version = bch->version;
-    bmp_common_hdr_get_len(bch, &msg_len);
+    // bmp_common_hdr_get_len(bch, &msg_len);
+    msg_len = bch->len;
     msg_len -= sizeof(struct bmp_common_hdr);
     orig_msg_len = msg_len;
 
@@ -90,7 +132,7 @@ u_int32_t bmp_process_packet(char *bmp_packet, u_int32_t len, struct bmp_peer *b
       bmp_process_msg_peer_up(&bmp_packet_ptr, &msg_len, bmpp); 
       break;
     case BMP_MSG_INIT:
-      bmp_process_msg_init(&bmp_packet_ptr, &msg_len, bmpp); 
+      bmp_process_msg_init(&bmp_packet_ptr, &msg_len, bmpp, parse_ok);
       break;
     case BMP_MSG_TERM:
       bmp_process_msg_term(&bmp_packet_ptr, &msg_len, bmpp); 
@@ -117,7 +159,7 @@ u_int32_t bmp_process_packet(char *bmp_packet, u_int32_t len, struct bmp_peer *b
   return FALSE;
 }
 
-void bmp_process_msg_init(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp)
+void bmp_process_msg_init(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp, ParseOk parseOk)
 {
   struct bgp_misc_structs *bms;
   struct bgp_peer *peer;
@@ -141,6 +183,28 @@ void bmp_process_msg_init(char **bmp_packet, u_int32_t *len, struct bmp_peer *bm
 
   tlvs = bmp_tlv_list_new(NULL, bmp_tlv_list_node_del);
   if (!tlvs) return;
+
+  /*
+  BmpMessageValueOpaque* msg = parseOk.message;
+  CSlice tlv_slice = bmp_init_get_tlvs(msg);
+
+  Log(LOG_INFO, "INFO ( %s/%s ): [%s] [init] netgauze read tlvs: start=%p, stride=%lu, end=%p, len=%lu, cap=%lu\n",
+      config.name, bms->log_str, peer->addr_str,
+      tlv_slice.base_ptr,
+      tlv_slice.stride,
+      tlv_slice.end_ptr,
+      tlv_slice.len,
+      tlv_slice.cap);
+
+  for (struct bmp_log_tlv* tlv = tlv_slice.base_ptr; tlv && tlv < tlv_slice.end_ptr; tlv += 1) {
+    Log(LOG_INFO, "INFO ( %s/%s ): [%s] [init] netgauze read tlv: type=%u, pen=%u, len=%u, &value=%p\n",
+        config.name, bms->log_str, peer->addr_str,
+        tlv->pen,
+        tlv->type,
+        tlv->len,
+        tlv->val
+    );
+  }*/
 
   /* Init message does not contain a timestamp */
   gettimeofday(&bdata.tstamp_arrival, NULL);

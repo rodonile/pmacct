@@ -23,12 +23,13 @@
 #define BMP_MSG_H
 
 /* includes */
+#include "pmacct_gauze_lib/pmacct_gauze_lib.h"
 
 /* defines */
 
 /* prototypes */
 extern u_int32_t bmp_process_packet(char *, u_int32_t, struct bmp_peer *, int *);
-extern void bmp_process_msg_init(char **, u_int32_t *, struct bmp_peer *);
+extern void bmp_process_msg_init(char **, u_int32_t *, struct bmp_peer *, ParseOk);
 extern void bmp_process_msg_term(char **, u_int32_t *, struct bmp_peer *);
 extern void bmp_process_msg_peer_up(char **, u_int32_t *, struct bmp_peer *);
 extern void bmp_process_msg_peer_down(char **, u_int32_t *, struct bmp_peer *);
