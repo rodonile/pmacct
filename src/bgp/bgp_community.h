@@ -74,4 +74,5 @@ extern void community_add_val(struct bgp_peer *, struct community *, u_int32_t);
 extern u_int32_t community_val_get(struct community *, int);
 extern int community_compare(const void *, const void *);
 extern struct community *community_dup(struct community *);
+extern char *community_com2str(struct bgp_peer *peer, struct community *com);
 #endif

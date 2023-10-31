@@ -29,12 +29,12 @@
 
 /* prototypes */
 extern u_int32_t bmp_process_packet(char *, u_int32_t, struct bmp_peer *, int *);
-extern void bmp_process_msg_init(char **, u_int32_t *, struct bmp_peer *, ParseOk);
+extern void bmp_process_msg_init(struct bmp_peer *, ParseOk_ParsedBmp);
 extern void bmp_process_msg_term(char **, u_int32_t *, struct bmp_peer *);
-extern void bmp_process_msg_peer_up(char **, u_int32_t *, struct bmp_peer *);
+extern void bmp_process_msg_peer_up(char **, u_int32_t *, struct bmp_peer *, const ParsedBmp *);
 extern void bmp_process_msg_peer_down(char **, u_int32_t *, struct bmp_peer *);
 extern void bmp_process_msg_stats(char **, u_int32_t *, struct bmp_peer *);
-extern void bmp_process_msg_route_monitor(char **, u_int32_t *, struct bmp_peer *);
+extern void bmp_process_msg_route_monitor(char **, u_int32_t *, struct bmp_peer *, const ParsedBmp *ptr);
 extern void bmp_process_msg_route_mirror(char **, u_int32_t *, struct bmp_peer *);
 
 extern void bmp_common_hdr_get_len(struct bmp_common_hdr *, u_int32_t *);

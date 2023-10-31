@@ -139,7 +139,8 @@ extern unsigned int aspath_count_hops (struct aspath *);
 extern unsigned int aspath_count_confeds (struct aspath *);
 extern unsigned int aspath_size (struct aspath *);
 extern as_t aspath_highest (struct aspath *);
-extern char *aspath_make_empty(); 
+extern char *aspath_make_empty();
+extern char *aspath_make_str_count(struct aspath *as);
 
 extern struct aspath *aspath_reconcile_as4 (struct aspath *, struct aspath *);
 extern unsigned int aspath_has_as4 (struct aspath *);
