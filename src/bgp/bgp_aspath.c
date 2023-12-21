@@ -124,7 +124,7 @@ assegment_dup_all(struct assegment *seg) {
 }
 
 /* append given array of as numbers to the segment */
-static struct assegment *
+struct assegment *
 assegment_append_asns(struct assegment *seg, as_t *asnos, int num) {
   as_t *newas;
 
@@ -267,7 +267,7 @@ aspath_unintern(struct bgp_peer *peer, struct aspath *aspath) {
 }
 
 /* Add new as segment to the as path. */
-static void
+void
 aspath_segment_add(struct aspath *as, int type) {
   struct assegment *seg = as->segments;
   struct assegment *new = assegment_new(type, 0);
@@ -279,7 +279,7 @@ aspath_segment_add(struct aspath *as, int type) {
 }
 
 /* Add new as value to as path structure. */
-static void
+void
 aspath_as_add(struct aspath *as, as_t asno) {
   struct assegment *seg = as->segments;
 

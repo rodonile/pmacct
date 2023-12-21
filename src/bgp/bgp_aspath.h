@@ -146,4 +146,7 @@ extern struct aspath *aspath_reconcile_as4 (struct aspath *, struct aspath *);
 extern unsigned int aspath_has_as4 (struct aspath *);
 extern unsigned int aspath_count_numas (struct aspath *);
 
+extern void aspath_segment_add(struct aspath *as, int type);
+extern void aspath_as_add(struct aspath *as, as_t asno);
+extern struct assegment *assegment_append_asns(struct assegment *seg, as_t *asnos, int num);
 #endif

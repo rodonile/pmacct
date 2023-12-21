@@ -55,7 +55,7 @@ u_int32_t bmp_process_packet(char *bmp_packet, u_int32_t len, struct bmp_peer *b
 
   for (msg_start_len = pkt_remaining_len = len; pkt_remaining_len; msg_start_len = pkt_remaining_len) {
 
-    netgauze_print_packet(bmp_packet_ptr, pkt_remaining_len);
+    // netgauze_print_packet(bmp_packet_ptr, pkt_remaining_len);
     ParseResultEnum_ParsedBmp parse_result = netgauze_parse_packet(bmp_packet_ptr, pkt_remaining_len);
 
     if (parse_result.tag == ParseFailure_ParsedBmp) {
@@ -954,22 +954,35 @@ void bmp_process_msg_route_monitor(char **bmp_packet, u_int32_t *len, struct bmp
       }
       CSlice_free_CSlice_u8(pdus);*/
 
-  COption_CSlice_ProcessPacket nlri = netgauze_bgp_parse_nlri(&bmpp->self, netgauze_parsed->message);
-  if (nlri.tag == Some_CSlice_ProcessPacket) {
+  BgpParseResult bgp_parsed = netgauze_bgp_parse_nlri(&bmpp->self, netgauze_parsed->message);
 
-    int idx = 0;
-    for (ProcessPacket *pkt = nlri.some.base_ptr; pkt < nlri.some.end_ptr; pkt += 1) {
-      if (pkt->update_type == BGP_NLRI_UPDATE) {
-        // bgp_process_update(&bmd, &pkt->prefix, &pkt->attr, &pkt->attr_extra, pkt->afi, pkt->safi, idx);
-      } else {
-        //bgp_process_withdraw();
-      }
+  ProcessPacket *pkt;
+  for (int i = 0; i < bgp_parsed.packets.len; i += 1) {
+    pkt = &bgp_parsed.packets.base_ptr[i];
 
-      idx += 1;
+    if (pkt->update_type == BGP_NLRI_UPDATE) {
+      bgp_process_update(&bmd, &pkt->prefix, &pkt->attr, &pkt->attr_extra, pkt->afi, pkt->safi, i);
+    } else {
+      bgp_process_withdraw(&bmd, &pkt->prefix, &pkt->attr, &pkt->attr_extra, pkt->afi, pkt->safi, i);
+
+      // We will not use the parsed e/l/community + aspath, so we free it once
+          if (bgp_parsed.update_count == 0 && i == bgp_parsed.packets.len - 1) {
+            if (pkt->attr.aspath)
+              aspath_free(pkt->attr.aspath);
+
+            if (pkt->attr.community)
+              community_free(pkt->attr.community);
+
+            if (pkt->attr.lcommunity)
+              lcommunity_free(pkt->attr.lcommunity);
+
+            if (pkt->attr.ecommunity)
+              ecommunity_free(pkt->attr.ecommunity);
+          }
     }
-
-    CSlice_free_ProcessPacket(nlri.some);
   }
+
+  CSlice_free_ProcessPacket(bgp_parsed.packets);
 
 /*      if ((bgp_msg_type = bgp_get_packet_type((*bmp_packet))) == BGP_UPDATE) {
         bgp_update_len = bgp_parse_update_msg(&bmd, (*bmp_packet));
