@@ -56,12 +56,12 @@ u_int32_t bmp_process_packet(char *bmp_packet, u_int32_t len, struct bmp_peer *b
   for (msg_start_len = pkt_remaining_len = len; pkt_remaining_len; msg_start_len = pkt_remaining_len) {
 
     // netgauze_print_packet(bmp_packet_ptr, pkt_remaining_len);
-    ParseResultEnum_ParsedBmp parse_result = netgauze_parse_packet(bmp_packet_ptr, pkt_remaining_len);
+    BmpResult parse_result = netgauze_parse_packet(bmp_packet_ptr, pkt_remaining_len);
 
-    if (parse_result.tag == ParseFailure_ParsedBmp) {
+    if (parse_result.tag == Err_ParsedBmp__BmpParseError) {
       Log(LOG_INFO, "INFO ( %s/%s ): [%s] packet discarded: %s\n", config.name, bms->log_str, peer->addr_str,
-          parse_error_str(&parse_result.parse_failure));
-      parse_result_free(parse_result);
+          bmp_error_str(parse_result.err));
+      bmp_result_free(parse_result);
       return FALSE;
     }
 
@@ -71,8 +71,8 @@ u_int32_t bmp_process_packet(char *bmp_packet, u_int32_t len, struct bmp_peer *b
       return msg_start_len;
     }
 
-    ParseOk_ParsedBmp parse_ok = parse_result.parse_success;
-    bch = &parse_ok.parsed.common_header;
+    ParsedBmp parsed_bmp = parse_result.ok;
+    bch = &parsed_bmp.common_header;
 
     Log(LOG_INFO, "INFO ( %s/%s ): [%s] packet received version %u, length %u, type %u\n", config.name, bms->log_str,
         peer->addr_str, bch->version, bch->len, bch->type);
@@ -114,7 +114,7 @@ u_int32_t bmp_process_packet(char *bmp_packet, u_int32_t len, struct bmp_peer *b
     orig_msg_len = msg_len;
 
     if (pkt_remaining_len < msg_len) {
-      parse_result_free(parse_result);
+      bmp_result_free(parse_result);
       return msg_start_len;
     }
 
@@ -125,7 +125,7 @@ u_int32_t bmp_process_packet(char *bmp_packet, u_int32_t len, struct bmp_peer *b
 
     switch (bch->type) {
       case BMP_MSG_ROUTE_MONITOR:
-        bmp_process_msg_route_monitor(&bmp_packet_ptr, &msg_len, bmpp, &parse_ok.parsed);
+        bmp_process_msg_route_monitor(&bmp_packet_ptr, &msg_len, bmpp, &parsed_bmp);
         break;
       case BMP_MSG_STATS:
         bmp_process_msg_stats(&bmp_packet_ptr, &msg_len, bmpp);
@@ -134,10 +134,10 @@ u_int32_t bmp_process_packet(char *bmp_packet, u_int32_t len, struct bmp_peer *b
         bmp_process_msg_peer_down(&bmp_packet_ptr, &msg_len, bmpp);
         break;
       case BMP_MSG_PEER_UP:
-        bmp_process_msg_peer_up(&bmp_packet_ptr, &msg_len, bmpp, &parse_ok.parsed);
+        bmp_process_msg_peer_up(&bmp_packet_ptr, &msg_len, bmpp, &parsed_bmp);
         break;
       case BMP_MSG_INIT:
-        bmp_process_msg_init(bmpp, parse_ok);
+        bmp_process_msg_init(bmpp, &parsed_bmp);
         break;
       case BMP_MSG_TERM:
         bmp_process_msg_term(&bmp_packet_ptr, &msg_len, bmpp);
@@ -153,7 +153,7 @@ u_int32_t bmp_process_packet(char *bmp_packet, u_int32_t len, struct bmp_peer *b
         break;
     }
 
-    parse_result_free(parse_result);
+    bmp_result_free(parse_result);
 
     /* sync-up status of pkt_remaining_len to bmp_packet_ptr */
     pkt_remaining_len -= (orig_msg_len - msg_len);
@@ -167,7 +167,7 @@ u_int32_t bmp_process_packet(char *bmp_packet, u_int32_t len, struct bmp_peer *b
   return FALSE;
 }
 
-void bmp_process_msg_init(struct bmp_peer *bmpp, ParseOk_ParsedBmp parseOk) {
+void bmp_process_msg_init(struct bmp_peer *bmpp, ParsedBmp *parsed_bmp) {
   struct bgp_misc_structs *bms;
   struct bgp_peer *peer;
   struct bmp_data bdata;
@@ -191,8 +191,13 @@ void bmp_process_msg_init(struct bmp_peer *bmpp, ParseOk_ParsedBmp parseOk) {
   tlvs = bmp_tlv_list_new(NULL, bmp_tlv_list_node_del);
   if (!tlvs) return;
 
-  BmpMessageValueOpaque *msg = parseOk.parsed.message;
-  CSlice_bmp_log_tlv tlv_slice = bmp_init_get_tlvs(msg);
+  BmpMessageValueOpaque *msg = parsed_bmp->message;
+  CResult_CSlice_bmp_log_tlv_____BmpParseError tlv_result = bmp_init_get_tlvs(msg);
+  if (tlv_result.tag == Err_CSlice_bmp_log_tlv_____BmpParseError) {
+    return;
+  }
+
+  CSlice_bmp_log_tlv tlv_slice = tlv_result.ok;
 
   Log(LOG_INFO, "INFO ( %s/%s ): [%s] [init] netgauze read tlvs: start=%p, stride=%lu, end=%p, len=%lu, cap=%lu\n",
       config.name, bms->log_str, peer->addr_str,
@@ -954,7 +959,13 @@ void bmp_process_msg_route_monitor(char **bmp_packet, u_int32_t *len, struct bmp
       }
       CSlice_free_CSlice_u8(pdus);*/
 
-  BgpParseResult bgp_parsed = netgauze_bgp_parse_nlri(&bmpp->self, netgauze_parsed->message);
+  BmpBgpResult bgp_result = netgauze_bgp_parse_nlri(&bmpp->self, netgauze_parsed->message);
+
+  if (bgp_result.tag == Err_ParsedBgp__ParseError) {
+    return;
+  }
+
+  ParsedBgp bgp_parsed = bgp_result.ok;
 
   ProcessPacket *pkt;
   for (int i = 0; i < bgp_parsed.packets.len; i += 1) {
