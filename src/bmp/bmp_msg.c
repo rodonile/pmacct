@@ -192,7 +192,7 @@ void bmp_process_msg_init(struct bmp_peer *bmpp, ParsedBmp *parsed_bmp) {
   if (!tlvs) return;
 
   BmpMessageValueOpaque *msg = parsed_bmp->message;
-  BmpInitTlvResult tlv_result = netgauze_bmp_init_get_tlvs(msg);
+  BmpTlvListResult tlv_result = netgauze_bmp_get_tlvs(msg);
   if (tlv_result.tag == Err_CSlice_bmp_log_tlv_____BmpParseError) {
     return;
   }
@@ -223,8 +223,6 @@ void bmp_process_msg_init(struct bmp_peer *bmpp, ParsedBmp *parsed_bmp) {
       exit_gracefully(1);
     }
   }
-
-  CSlice_free_bmp_log_tlv(tlv_slice);
 
   /* Init message does not contain a timestamp */
   gettimeofday(&bdata.tstamp_arrival, NULL);
@@ -280,6 +278,8 @@ void bmp_process_msg_init(struct bmp_peer *bmpp, ParsedBmp *parsed_bmp) {
   if (bms->msglog_backend_methods || bms->dump_backend_methods) bgp_peer_log_seq_increment(&bms->log_seq);
 
   if (!pm_listcount(tlvs) || !bms->dump_backend_methods) bmp_tlv_list_destroy(tlvs);
+
+  CSlice_free_bmp_log_tlv(tlv_slice);
 }
 
 void bmp_process_msg_term(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp) {
