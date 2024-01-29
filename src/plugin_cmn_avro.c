@@ -68,6 +68,7 @@ avro_schema_t p_avro_schema_build_acct_data(u_int64_t wtc, u_int64_t wtc_2, u_in
 
   if (wtc_2 & COUNT_LABEL) {
     if (config.pretag_label_encode_as_map) {
+      Log(LOG_INFO, "LEONARDO ( %s/%s ): call compose_label_avro_schema_nonopt.\n", config.name, config.type);
       compose_label_avro_schema_nonopt(schema);
     }
     else {
@@ -628,10 +629,17 @@ avro_value_t compose_avro_acct_data(u_int64_t wtc, u_int64_t wtc_2, u_int64_t wt
   }
 
   if (wtc_2 & COUNT_LABEL) {
+
+    Log(LOG_INFO, "LEONARDO ( %s/%s ): compose_avro_acct_data: calling vlen_prims_get[COUNT_INT_LABEL]!\n", config.name, config.type);
+
     vlen_prims_get(pvlen, COUNT_INT_LABEL, &str_ptr);
     if (!str_ptr) str_ptr = empty_string;
 
+    /* DEBUG print */
+    Log(LOG_INFO, "LEONARDO ( %s/%s ): str_ptr=%s.\n", config.name, config.type, str_ptr);
+
     if (config.pretag_label_encode_as_map) {
+      Log(LOG_INFO, "LEONARDO ( %s/%s ): call compose_label_avro_data_nonopt.\n", config.name, config.type);
       compose_label_avro_data_nonopt(str_ptr, value);
     }
     else {
@@ -1097,6 +1105,8 @@ avro_value_t compose_avro_acct_data(u_int64_t wtc, u_int64_t wtc_2, u_int64_t wt
     int label_stack_len = 0;
 
     memset(label_stack, 0, MAX_MPLS_LABEL_STACK);
+
+    Log(LOG_INFO, "LEONARDO ( %s/%s ): compose_avro_acct_data: calling vlen_prims_get[mpls-label-stack]!\n", config.name, config.type);
 
     label_stack_len = vlen_prims_get(pvlen, COUNT_INT_MPLS_LABEL_STACK, &label_stack_ptr);
     if (label_stack_ptr) {
@@ -1812,6 +1822,10 @@ int compose_label_avro_data_nonopt(char *str_ptr, avro_value_t v_type_record)
 
   /* linked-list creation */
   ptm_label lbl;
+
+  /* DEBUG print */
+  Log(LOG_INFO, "LEONARDO ( %s/%s ): lbls_norm=%s.\n", config.name, config.type, lbls_norm);
+
   cdada_list_t *ll = ptm_labels_to_linked_list(lbls_norm);
   size_t ll_size = cdada_list_size(ll);
 
@@ -1822,7 +1836,15 @@ int compose_label_avro_data_nonopt(char *str_ptr, avro_value_t v_type_record)
     memset(&lbl, 0, sizeof(lbl));
     cdada_list_get(ll, idx_0, &lbl);
     if (avro_value_get_by_name(&v_type_record, "label", &v_type_map, NULL) == 0) {
+
+      /* DEBUG print */
+      Log(LOG_INFO, "LEONARDO ( %s/%s ): lbl.key=%s.\n", config.name, config.type, lbl.key);
+
       if (avro_value_add(&v_type_map, lbl.key, &v_type_string, NULL, NULL) == 0) {
+
+        /* DEBUG print */
+        Log(LOG_INFO, "LEONARDO ( %s/%s ): lbl.value=%s.\n", config.name, config.type, lbl.value);
+
         avro_value_set_string(&v_type_string, lbl.value);
       }
     }

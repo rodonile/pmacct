@@ -2984,6 +2984,7 @@ int vlen_prims_cmp(struct pkt_vlen_hdr_primitives *src, struct pkt_vlen_hdr_prim
 
 int vlen_prims_get(struct pkt_vlen_hdr_primitives *hdr, pm_cfgreg_t wtc, char **res)
 {
+  Log(LOG_INFO, "LEONARDO ( %s/%s ): enter vlen_prims_get!\n", config.name, config.type);
   pm_label_t *label_ptr;
   char *ptr = (char *) hdr;
   int x, rlen;
@@ -2995,11 +2996,23 @@ int vlen_prims_get(struct pkt_vlen_hdr_primitives *hdr, pm_cfgreg_t wtc, char **
   ptr += PvhdrSz; 
   label_ptr = (pm_label_t *) ptr; 
 
+  /* DEBUG prints */
+  Log(LOG_INFO, "************************FOR LOOP START***************************** \n");
+  Log(LOG_INFO, "LEONARDO ( %s/%s ): hdr->tot_len=%d - hdr->num=%d.\n", config.name, config.type, hdr->tot_len, hdr->num);
+
   for (x = 0, rlen = 0; x < hdr->num && rlen < hdr->tot_len; x++) {
+
+    /* DEBUG prints */
+    Log(LOG_INFO, "LEONARDO ( %s/%s ): x=%d, rlen=%d. \n", config.name, config.type, x, rlen);
+
     if (label_ptr->type == wtc) {
       if (label_ptr->len) {
         ptr += PmLabelTSz;
         *res = ptr;
+
+        /* DEBUG prints */
+        hexDump("ptr hexdump", ptr, 64, TRUE);
+        Log(LOG_INFO, "LEONARDO ( %s/%s ): ptr=%s.\n", config.name, config.type, ptr);
       }
 
       return label_ptr->len;
@@ -3811,4 +3824,54 @@ void remove_password(char *str, char *pwdstr)
       }
     }
   }
+}
+
+/* Dump memory content to log (and also std-out if desired) in wireshark-style */
+void hexDump (char *desc, void *addr, int len, int std_out_output) {
+    int i;
+    unsigned char buff[17];       // stores the ASCII data
+    unsigned char *pc = addr;     // cast to make the code cleaner.
+
+    Log(LOG_DEBUG, "DEBUG ( %s/%s ): -------------------------------------------------------------\n", config.name, config.type);
+
+    // Output description if given.
+    if (desc != NULL) {
+        if (std_out_output) printf ("%s:\n", desc);
+        Log(LOG_DEBUG, "DEBUG ( %s/%s ): %s:\n", config.name, config.type, desc);
+    }
+    // Process every byte in the data.
+    for (i = 0; i < len; i++) {
+        // Multiple of 16 means new line (with line offset).
+        if ((i % 16) == 0) {
+            // Don't print ASCII for the zeroth line.
+            if (i != 0) {
+                if (std_out_output) printf ("  %s\n", buff);
+                fprintf(config.logfile_fd, "| %s |\n", buff);
+            }
+            // Output the offset.
+            if (std_out_output) printf ("  %04x ", i);
+            Log(LOG_DEBUG, "DEBUG ( %s/%s ): | %04x | ", config.name, config.type, i);
+        }
+
+        // Now the hex code for the specific character.
+        if (std_out_output) printf (" %02x", pc[i]);
+        fprintf(config.logfile_fd, " %02x ", pc[i]);
+
+        // And store a printable ASCII character for later.
+        if ((pc[i] < 0x20) || (pc[i] > 0x7e)) buff[i % 16] = '.';
+        else buff[i % 16] = pc[i];
+        buff[(i % 16) + 1] = '\0';
+    }
+
+    // Pad out last line if not exactly 16 characters.
+    while ((i % 16) != 0) {
+        if (std_out_output) printf ("   ");
+        fprintf(config.logfile_fd, "    ");
+        i++;
+    }
+
+    // And print the final ASCII bit.
+    if (std_out_output) printf ("  %s\n", buff);
+    fprintf(config.logfile_fd, "| %s |\n", buff);
+    Log(LOG_DEBUG, "DEBUG ( %s/%s ): -------------------------------------------------------------\n", config.name, config.type);
 }

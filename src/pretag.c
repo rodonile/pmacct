@@ -454,6 +454,7 @@ void load_id_file(int acct_type, char *filename, struct id_table *t, struct plug
 
 		      if (recirc_e.label.val) {
 			memset(&tmp.e[tmp.num].label, 0, sizeof(pt_label_t));
+                        Log(LOG_INFO, "LEONARDO ( %s/%s ): [pretag.c 457]: calling pretag_copy_label!\n", config.name, config.type);
 			pretag_copy_label(&tmp.e[tmp.num].label, &recirc_e.label);
 		      }
 
@@ -927,8 +928,12 @@ int pretag_realloc_label(pt_label_t *label, int old_len, int add_len)
   return SUCCESS;
 }
 
+// TODO: have a look when this function is called to see why size increases?? (uses previously copied label not the original one, but still only the first time it should increase...??)
 int pretag_copy_label(pt_label_t *dst, pt_label_t *src)
 {
+  /* DEBUG print */
+  Log(LOG_INFO, "LEONARDO ( %s/%s ): enter pretag_copy_label!\n", config.name, config.type);
+
   if (!src || !dst) return ERR;
 
   if (dst->val) {
@@ -937,8 +942,10 @@ int pretag_copy_label(pt_label_t *dst, pt_label_t *src)
   }
   else {
     if (src->len) {
+
+      Log(LOG_INFO, "LEONARDO ( %s/%s ): pretag_copy_label: calling pretag_malloc_label!\n", config.name, config.type);
       pretag_malloc_label(dst, src->len + 1);
-      dst->len = src->len; /* fix length in case of multiple mallocs */
+      Log(LOG_INFO, "LEONARDO ( %s/%s ): sizeof(src->val)=%d!\n", config.name, config.type, sizeof(src->val));
 
       if (!dst->val) {
         Log(LOG_ERR, "ERROR ( %s/%s ): malloc() failed (pretag_copy_label).\n", config.name, config.type);
@@ -946,7 +953,22 @@ int pretag_copy_label(pt_label_t *dst, pt_label_t *src)
       }
 
       strncpy(dst->val, src->val, src->len);
-      dst->val[dst->len] = '\0';
+
+      if (dst->val[src->len - 1] == '\0') {
+        dst->len = src->len; /* fix length in case of multiple mallocs */
+      }
+      else {
+        dst->val[dst->len - 1] = '\0';
+      }
+
+      hexDump("src->val hexdump", src->val, 64, TRUE);
+      Log(LOG_INFO, "LEONARDO ( %s/%s ): src->val=%s!\n", config.name, config.type, src->val);
+      Log(LOG_INFO, "LEONARDO ( %s/%s ): src->len=%d!\n", config.name, config.type, src->len);
+
+      hexDump("dst->val hexdump", dst->val, 64, TRUE);
+      Log(LOG_INFO, "LEONARDO ( %s/%s ): dst->val=%s!\n", config.name, config.type, dst->val);
+      Log(LOG_INFO, "LEONARDO ( %s/%s ): dst->len=%d!\n", config.name, config.type, dst->len);
+
     }
   }
   
@@ -1046,6 +1068,7 @@ int pretag_entry_process(struct id_entry *e, struct packet_ptrs *pptrs, pm_id_t 
 	pretag_append_label(&pptrs->label, label_local);
       }
       else {
+        Log(LOG_INFO, "LEONARDO ( %s/%s ): [pretag.c 1057 - pretag_entry_process]: calling pretag_copy_label!\n", config.name, config.type);
 	pretag_copy_label(&pptrs->label, label_local);
       }
 

@@ -414,6 +414,7 @@ void exec_plugins(struct packet_ptrs *pptrs, struct plugin_requests *req)
       if (p->cfg.ptm_global && got_tags) {
         pptrs->tag = saved_tag;
         pptrs->tag2 = saved_tag2;
+        Log(LOG_INFO, "LEONARDO ( %s/%s ): [plugin_hooks.c 417]: calling pretag_copy_label!\n", config.name, config.type);
 	pretag_copy_label(&pptrs->label, saved_label);
 
         pptrs->have_tag = saved_have_tag;
@@ -428,6 +429,8 @@ void exec_plugins(struct packet_ptrs *pptrs, struct plugin_requests *req)
 	  if (p->cfg.ptm_global) {
 	    saved_tag = pptrs->tag;
 	    saved_tag2 = pptrs->tag2;
+
+            Log(LOG_INFO, "LEONARDO ( %s/%s ): [plugin_hooks.c 433]: calling pretag_copy_label!\n", config.name, config.type);
 	    pretag_copy_label(saved_label, &pptrs->label);
 
 	    saved_have_tag = pptrs->have_tag;

@@ -618,10 +618,15 @@ void compose_json_tag2(json_t *obj, struct chained_cache *cc)
 
 void compose_json_label(json_t *obj, struct chained_cache *cc)
 {
+  Log(LOG_INFO, "LEONARDO ( %s/%s ): enter compose_json_label!\n", config.name, config.type);
+
   char empty_string[] = "", *str_ptr;
 
   vlen_prims_get(cc->pvlen, COUNT_INT_LABEL, &str_ptr);
   if (!str_ptr) str_ptr = empty_string;
+
+  /* DEBUG print */
+  Log(LOG_INFO, "LEONARDO ( %s/%s ): [JSON-code] str_ptr=%s.\n", config.name, config.type, str_ptr);
 
   json_object_set_new_nocheck(obj, "label", json_string(str_ptr));
 }
@@ -1411,8 +1416,13 @@ void compose_json_map_label(json_t *obj, struct chained_cache *cc)
 {
   char empty_string[] = "", *str_ptr;
 
+  Log(LOG_INFO, "LEONARDO ( %s/%s ): compose_json_map_label: calling vlen_prims_get!\n", config.name, config.type);
+
   vlen_prims_get(cc->pvlen, COUNT_INT_LABEL, &str_ptr);
   if (!str_ptr) str_ptr = empty_string;
+
+  /* DEBUG print */
+  Log(LOG_INFO, "LEONARDO ( %s/%s ): [JSON-code] str_ptr=%s.\n", config.name, config.type, str_ptr);
 
   /* labels normalization */
   cdada_str_t *lbls_cdada = cdada_str_create(str_ptr);

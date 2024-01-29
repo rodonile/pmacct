@@ -2682,6 +2682,7 @@ int pretag_label_handler(struct packet_ptrs *pptrs, void *id, void *e)
   pt_label_t *out_label = (pt_label_t *) id;
 
   if (out_label) {
+    Log(LOG_INFO, "LEONARDO ( %s/%s ): [pretag_handlers.c]: calling pretag_copy_label!\n", config.name, config.type);
     pretag_copy_label(out_label, &entry->label);
   }
 
