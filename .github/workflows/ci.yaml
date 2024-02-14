@@ -1,11 +1,35 @@
 name: ci
 
 on:
-  workflow_dispatch:
   push:
   pull_request:
   schedule:
     - cron: '0 0 * * *'  # every day at midnight
+  workflow_dispatch:
+    inputs:
+      default_only:
+        description: 'Test default scenarios only'
+        required: false
+        type: boolean
+      commit_id:
+        description: 'Commit ID'     
+        required: false
+        default: ''
+      marker:
+        description: 'Pytest Marker (defined in pytest.ini)'    
+        required: false
+        default: ''
+        type: choice
+        options:
+        - ''
+        - basic
+        - ipfix
+        - bmp
+        - bgp
+        - avro
+        - json
+        - redis
+        - signals
 
 #Global vars
 env:
@@ -25,7 +49,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout pmacct
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           path: pmacct
 
@@ -40,7 +64,7 @@ jobs:
           docker save -o /tmp/docker/$BUILD_DOCKER_TAG_UBUNTU_FOCAL.tar $BUILD_DOCKER_TAG_UBUNTU_FOCAL
 
       - name: Artifact docker image
-        uses: actions/upload-artifact@v2.2.2
+        uses: actions/upload-artifact@v4
         with:
           name: builder_ubuntu_focal
           retention-days: 1
@@ -51,7 +75,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout pmacct
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           path: pmacct
 
@@ -66,7 +90,7 @@ jobs:
           docker save -o /tmp/docker/$BUILD_DOCKER_TAG_UBUNTU_JAMMY.tar $BUILD_DOCKER_TAG_UBUNTU_JAMMY
 
       - name: Artifact docker image
-        uses: actions/upload-artifact@v2.2.2
+        uses: actions/upload-artifact@v4
         with:
           name: builder_ubuntu_jammy 
           retention-days: 1
@@ -77,7 +101,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout pmacct
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           path: pmacct
 
@@ -92,7 +116,7 @@ jobs:
           docker save -o /tmp/docker/builder_rockylinux8.tar $BUILD_DOCKER_TAG_ROCKYLINUX_8
 
       - name: Artifact docker image
-        uses: actions/upload-artifact@v2.2.2
+        uses: actions/upload-artifact@v4
         with:
           name: builder_rockylinux8
           retention-days: 1
@@ -103,7 +127,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout pmacct
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           path: pmacct
 
@@ -118,7 +142,7 @@ jobs:
           docker save -o /tmp/docker/builder_rockylinux9.tar $BUILD_DOCKER_TAG_ROCKYLINUX_9
 
       - name: Artifact docker image
-        uses: actions/upload-artifact@v2.2.2
+        uses: actions/upload-artifact@v4
         with:
           name: builder_rockylinux9
           retention-days: 1
@@ -127,6 +151,7 @@ jobs:
 
   ### Step 2: permutations
   build-and-test:
+    if: 0 == 1 # skip this job for now [TODO: remove before PR to paolo's upstream]
     needs: [builder-ubuntu-focal-docker, builder-ubuntu-jammy-docker, builder-rockylinux8-docker, builder-rockylinux9-docker]
     runs-on: ubuntu-22.04
     strategy:
@@ -162,7 +187,7 @@ jobs:
         run: |
           mkdir -p /tmp/docker
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: ${{ matrix.builder-name }}
           path: /tmp/docker
@@ -172,7 +197,7 @@ jobs:
           ls -la /tmp/docker
 
       - name: Checkout pmacct
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           path: pmacct
@@ -198,13 +223,22 @@ jobs:
         with:
           path: pmacct
 
-      - name: Build containers
+      - name: Build containers                                      
+        env:
+          COMMIT_ID: ${{ inputs.commit_id }}        # TODO: implement fail (exit 1) if commit ID is non-existent
         run: |
           git config --global --add safe.directory $GITHUB_WORKSPACE
           git config --global --add safe.directory $GITHUB_WORKSPACE/src/external_libs/libcdada
           git rev-parse HEAD
           echo "Fix mess with tags in actions/checkout..."
           git fetch -f && git fetch -f --tags
+          echo
+          if [[ "$COMMIT_ID" != "" ]]
+          then
+            echo "Checking out at commit id=$COMMIT_ID"
+            git checkout $COMMIT_ID
+          fi
+          echo
           echo "Deducing PMACCT_VERSION..."
           PMACCT_VERSION=$(git describe --abbrev=0 --match="v*")
           echo "PMACCT_VERSION=$PMACCT_VERSION"
@@ -235,23 +269,24 @@ jobs:
           TAG=_build docker-compose -f ci/smoke-test/docker-compose.yml down
 
       - name: Export pmacct docker images as an artifact
-        uses: actions/upload-artifact@v2.2.2
+        uses: actions/upload-artifact@v4
         with:
           name: pmacct_docker_images
           retention-days: 1
-          path: |
-            /tmp/docker
+          path: /tmp/docker
 
   ### Step 4: Upload images to dockerhub (bleeding-edge, latest and releases)
   publish-dockerhub:
     needs: [pmacct-docker, build-and-test]
     runs-on: ubuntu-22.04
-    if: github.event_name != 'pull_request'
+    #if: github.event_name != 'pull_request'            # TODO: ensure that this does not run when action triggered by workflow dispatch(since we could change the commit id and branch!!!!)
+    #if: github.event_name == 'schedule' # TODO: check if it's fine to only have it on schedule?
+    if: 0 == 1 # skip this job for now [TODO: remove before PR to paolo's upstream]
     env:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: pmacct_docker_images
           path: /tmp/docker
@@ -342,3 +377,322 @@ jobs:
               docker push ${DOCKER_USERNAME}/pmtelemetryd:latest;
             fi
           fi
+
+  ### Step 5: Regression Testing (powered by https://github.com/network-analytics/pmacct-test-automation)
+  ### Build Traffic Reproducer Images
+  traf-repro-docker:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout Framework
+        uses: actions/checkout@v4
+        with:
+          repository: network-analytics/pmacct-test-automation
+          ref: 'dev-actions'
+          token: ${{ secrets.PMACCT_TEST_AUTOMATION_PAT }}
+          path: pmacct-test-automation
+          submodules: recursive
+
+      - name: Create Traffic Reproducer Docker Images
+        run: |
+          sudo apt update
+          sudo apt install docker
+          cd pmacct-test-automation
+          tools/pcap_player/build_docker_images.sh
+
+      - name: Check Images and Save as Artifacts
+        run: |
+          echo "Checking Images..."
+          docker images | grep _build
+          echo
+          echo "Saving images as artifacts..."
+          mkdir -p /tmp/docker/
+          docker save -o /tmp/docker/traffic_reproducer_docker_images.tar traffic-reproducer:_build traffic-reproducer-multi:_build
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          retention-days: 1
+          name: traffic_reproducer_docker_images
+          path: /tmp/docker
+  
+  ### Retrieve all other necessary images from Docker Hub and store as artifacts
+  ### (to avoid possible Docker Hub pull limits)
+  hub-pulled-docker:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout Framework
+        uses: actions/checkout@v4
+        with:
+          repository: network-analytics/pmacct-test-automation
+          ref: 'dev-actions'
+          token: ${{ secrets.PMACCT_TEST_AUTOMATION_PAT }}
+          path: pmacct-test-automation
+          submodules: recursive
+
+      - name: Download images and prepare artifacts
+        run: |
+          cd pmacct-test-automation
+          source settings.conf
+          docker image pull $ZOOKEEPER_IMG
+          docker image pull $KAFKA_IMG
+          docker image pull $SCHEMAREGISTRY_IMG
+          docker image pull $REDIS_IMG
+          echo "List Images"
+          docker images | grep 'confluentinc\|redis'
+          echo
+          echo "Saving images as artifacts..."
+          mkdir -p /tmp/docker/
+          docker save -o /tmp/docker/hub_pulled_docker_images.tar $ZOOKEEPER_IMG $KAFKA_IMG $SCHEMAREGISTRY_IMG $REDIS_IMG
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          retention-days: 1
+          name: hub_pulled_docker_images
+          path: /tmp/docker
+
+  ### Collect tests from framework
+  collect-tests:
+    runs-on: ubuntu-22.04
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout Framework
+        uses: actions/checkout@v4
+        with:
+          repository: network-analytics/pmacct-test-automation
+          ref: 'dev-actions'
+          token: ${{ secrets.PMACCT_TEST_AUTOMATION_PAT }}
+          path: pmacct-test-automation
+          submodules: recursive
+      
+      - name: Collect list of tests from tests/ folder
+        id: set-matrix
+        run: |
+          cd pmacct-test-automation/tests
+          MATRIX="{"test": $(find . -mindepth 1 -maxdepth 1 -type d | cut -c 3- | cut -c 1-3 | sort | jq -R -s -c 'split("\n")[:-1]')}"
+          echo "matrix=${MATRIX}" >> $GITHUB_OUTPUT
+          echo "Collected tests:"
+          echo $MATRIX
+
+  ### Setup Framework and Run Tests
+  pytest-runtests:
+    needs: [collect-tests, pmacct-docker, traf-repro-docker, hub-pulled-docker]
+    runs-on: ubuntu-22.04
+    env:
+      SKIP: 'false'
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.collect-tests.outputs.matrix) }}
+
+    steps:
+      - name: Checkout Framework
+        uses: actions/checkout@v4
+        with:
+          repository: network-analytics/pmacct-test-automation
+          ref: 'dev-actions'
+          token: ${{ secrets.PMACCT_TEST_AUTOMATION_PAT }}
+          path: pmacct-test-automation
+          submodules: recursive
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Framework Requirements
+        run: |
+          sudo apt update
+          sudo apt install librdkafka-dev docker
+          pip install --upgrade pip
+          pip install -r pmacct-test-automation/requirements.txt
+
+      - name: Dry-run to check collected tests
+        if: ${{ success() && inputs.marker != '' }}             
+        env:
+          MARKER: ${{ inputs.marker }}
+        run: |
+          function intercept_pytest_no_tests_collected { 
+            exit_code=$?
+            if [[ ${exit_code} -eq 5 ]]
+            then
+              echo "Intercepting pytest exit code 5 (no tests collected) and replacing with 0"
+              echo "Setting early_exit to true!"
+              echo "SKIP=true" >> "$GITHUB_ENV"
+              exit 0
+            fi
+          }
+          trap intercept_pytest_no_tests_collected EXIT
+          cd pmacct-test-automation
+          sudo env PATH="$PATH" ./runtest.sh --dry ${{ matrix.test }} --mark="$MARKER"
+          trap - EXIT
+
+      - name: Download Artifacts
+        if: ${{ success() && env.SKIP == 'false' }}
+        uses: actions/download-artifact@v4
+        with:
+          pattern: '*_docker_images'
+          path: /tmp/docker
+
+      - name: Import images in the local registry
+        if: ${{ success() && env.SKIP == 'false' }}
+        run: |
+          docker load -i /tmp/docker/pmacct_docker_images/pmacct_docker_images.tar
+          docker load -i /tmp/docker/traffic_reproducer_docker_images/traffic_reproducer_docker_images.tar
+          docker load -i /tmp/docker/hub_pulled_docker_images/hub_pulled_docker_images.tar
+          echo "List Images"
+          docker images | grep 'confluentinc\|redis\|traffic\|_build'
+
+      - name: Run the test(s)
+        if: ${{ success() && env.SKIP == 'false' }}
+        env:
+          DEFAULT_ONLY: ${{ inputs.default_only }}
+          MARKER: ${{ inputs.marker }}                # TODO: remove this if we decide that we run the single tests only (don't need this as was checked above...) --> then also adapt the if-else below...
+        run: |
+          cd pmacct-test-automation
+          if [[ "$DEFAULT_ONLY" == "true" ]]; then
+            if [[ "$MARKER" == "" ]]; then
+              sudo env PATH="$PATH" ./runtest.sh ${{ matrix.test }}:00
+            else
+              sudo env PATH="$PATH" ./runtest.sh ${{ matrix.test }}:00 --mark="$MARKER"
+            fi
+          else
+            if [[ "$MARKER" == "" ]]; then
+              sudo env PATH="$PATH" ./runtest.sh ${{ matrix.test }}
+            else
+              sudo env PATH="$PATH" ./runtest.sh ${{ matrix.test }} --mark="$MARKER"
+            fi
+          fi
+
+      - name: Prepare Results Folder for Upload (permissions and folder name)
+        if: ${{ !cancelled() && env.SKIP == 'false' }}    # always run this step, unless job manually cancelled or we are skipping the test
+        run: |
+          cd pmacct-test-automation
+          sudo chown -R 1000:1000 results/
+          sudo chmod -R 777 results/
+          echo "Adjust results folder name (when : or * is used as part of ./runtest.sh argument...)"
+          TEST_FOLDER_NAME=$( echo ${{ matrix.test }} | sed 's/\*/x/g' )
+          TEST_FOLDER_NAME=$( echo $TEST_FOLDER_NAME | sed 's/\:/_/g' )
+          echo "TEST_FOLDER_NAME=$TEST_FOLDER_NAME" >> "$GITHUB_ENV"
+
+      - name: Upload Results Folder
+        if: ${{ !cancelled() && env.SKIP == 'false' }}    # always run this step, unless job manually cancelled or we are skipping the test
+        uses: actions/upload-artifact@v4
+        with:
+          retention-days: 7
+          name: "test_results_${{ env.TEST_FOLDER_NAME }}"
+          path: pmacct-test-automation/results
+
+  # Expose Results as Artifacts
+  pytest-results:
+    if: '!cancelled()'                                # always run this job, unless job manually cancelled
+    needs: pytest-runtests
+    runs-on: ubuntu-22.04
+    permissions:                                      # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+      pages: write                                    #  --> to deploy to Pages
+      id-token: write                                 #  --> to verify the deployment originates from an appropriate source
+    steps:
+      - name: Download Results Folder
+        uses: actions/download-artifact@v4
+        with:
+          pattern: test_results_*
+          path: results
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Requirements
+        run: |
+          pip install --upgrade pip
+          pip install pytest-html-merger
+
+      - name: Merge results (test logs, global logs, and reports) in a single folder
+        run: |
+          mkdir test_results_merged
+          cat results/**/pytestlog.log > test_results_merged/pytestlog.log
+          cat results/**/monitor.log > test_results_merged/monitor.log
+          find results/**/* -maxdepth 0 -type d -exec cp -r {} test_results_merged/ \;
+          mkdir tmp_html
+          randomname() { head -c16 /dev/urandom | base64 | tr -dc a-zA-Z; }
+          for f in results/**/report.html; do mv "$f" tmp_html/`randomname`.html; done
+          cp -R test_results_merged/assets tmp_html
+          pytest_html_merger -i tmp_html -o test_results_merged/report_merged.html
+          cp -R tmp_html/assets test_results_merged
+
+      - name: Upload Merged Results Folder
+        id: upload-artifact-results
+        uses: actions/upload-artifact@v4
+        with:
+          retention-days: 15
+          name: test_results
+          path: test_results_merged
+
+      # Workaround until they support multiple URLs deployments to github pages
+      - name: Upload HTML report as standard artifact
+        id: upload-artifact-html-report
+        uses: actions/upload-artifact@v4
+        with:
+          retention-days: 15
+          name: pytest_html_report
+          path: test_results_merged/report_merged.html
+
+      - name: Create folder to deploy to pages and fix permissions
+        if: ${{ !cancelled() && github.ref == 'refs/heads/master' }}
+        run: |
+          mkdir github-pages
+          cp test_results_merged/report_merged.html github-pages/index.html
+          echo
+          echo "Fix permissions (if necessary)..."
+          chmod -c -R +rX github-pages | while read line; do
+            echo "::warning title=Invalid file permissions automatically fixed::$line"
+          done
+
+      - name: Upload HTML report as github pages artifact (will be deployed by next job)
+        if: ${{ !cancelled() && github.ref == 'refs/heads/master' }}
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: github-pages/
+
+      - name: Add info to markdown summary
+        env:
+          MARKER: ${{ inputs.marker }}
+          COMMIT_ID: ${{ inputs.commit_id }}
+          DEFAULT_ONLY: ${{ inputs.default_only }}
+        run: |
+          echo "## :loudspeaker: Pytest Run Information: :loudspeaker:" >> $GITHUB_STEP_SUMMARY
+          echo "### Test Results:" >> $GITHUB_STEP_SUMMARY
+          echo "The Pytest HTML report is only deployed on github pages for runs triggered from the master branch (for security reasons), \
+                and is only available for the latest CI run. This is due to current Github Actions limitations of not supporting \
+                different URLs for deployments. Nonetheless, reports are anyway available for download as artifacts for up to 15 days \
+                after the test run (see Artifacts section above)." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Quick links for downloading:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Pytest HTML Report: ${{ steps.upload-artifact-html-report.outputs.artifact-url }}'" >> $GITHUB_STEP_SUMMARY
+          echo "- Complete Pytest Results (with fine-grained logs for all tests): \
+                  ${{ steps.upload-artifact-results.outputs.artifact-url }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo
+          echo "### Input Arguments (use for manual workflow dispatch of the CI only):" >> $GITHUB_STEP_SUMMARY
+          echo "Marker provided: $MARKER" >> $GITHUB_STEP_SUMMARY
+          echo "Commit ID provided: $COMMIT_ID" >> $GITHUB_STEP_SUMMARY
+          echo "Default_only: $DEFAULT_ONLY" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo
+
+  # Deploy HTML report with github pages
+  pytest-html-report-deploy:                          
+    if: ${{ !cancelled() && github.ref == 'refs/heads/master' }}    # We can only deploy pages from master (security reasons)
+    needs: pytest-results
+    runs-on: ubuntu-22.04
+    permissions:                                      # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+      pages: write                                    #  --> to deploy to Pages
+      id-token: write                                 #  --> to verify the deployment originates from an appropriate source
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}   # The deployment URL cannot be changed (for now...)
+    steps:
+      - name: Deploy artifact to Github Pages
+        uses: actions/deploy-pages@v4
+        id: deployment
