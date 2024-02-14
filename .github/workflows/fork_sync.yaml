@@ -1,0 +1,17 @@
+name: fork_sync
+
+on:
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - run: gh repo sync $REPO --source $PARENT_REPO -b $BRANCH    # TODO fix s.t. it does not add merge commit!
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: rodonile/pmacct
+          PARENT_REPO: pmacct/pmacct
+          BRANCH: master
