@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout pmacct
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           path: pmacct
 
@@ -40,7 +40,7 @@ jobs:
           docker save -o /tmp/docker/$BUILD_DOCKER_TAG_UBUNTU_FOCAL.tar $BUILD_DOCKER_TAG_UBUNTU_FOCAL
 
       - name: Artifact docker image
-        uses: actions/upload-artifact@v2.2.2
+        uses: actions/upload-artifact@v4
         with:
           name: builder_ubuntu_focal
           retention-days: 1
@@ -51,7 +51,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout pmacct
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           path: pmacct
 
@@ -66,7 +66,7 @@ jobs:
           docker save -o /tmp/docker/$BUILD_DOCKER_TAG_UBUNTU_JAMMY.tar $BUILD_DOCKER_TAG_UBUNTU_JAMMY
 
       - name: Artifact docker image
-        uses: actions/upload-artifact@v2.2.2
+        uses: actions/upload-artifact@v4
         with:
           name: builder_ubuntu_jammy 
           retention-days: 1
@@ -77,7 +77,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout pmacct
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           path: pmacct
 
@@ -92,7 +92,7 @@ jobs:
           docker save -o /tmp/docker/builder_rockylinux8.tar $BUILD_DOCKER_TAG_ROCKYLINUX_8
 
       - name: Artifact docker image
-        uses: actions/upload-artifact@v2.2.2
+        uses: actions/upload-artifact@v4
         with:
           name: builder_rockylinux8
           retention-days: 1
@@ -103,7 +103,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout pmacct
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           path: pmacct
 
@@ -118,7 +118,7 @@ jobs:
           docker save -o /tmp/docker/builder_rockylinux9.tar $BUILD_DOCKER_TAG_ROCKYLINUX_9
 
       - name: Artifact docker image
-        uses: actions/upload-artifact@v2.2.2
+        uses: actions/upload-artifact@v4
         with:
           name: builder_rockylinux9
           retention-days: 1
@@ -162,7 +162,7 @@ jobs:
         run: |
           mkdir -p /tmp/docker
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: ${{ matrix.builder-name }}
           path: /tmp/docker
@@ -172,7 +172,7 @@ jobs:
           ls -la /tmp/docker
 
       - name: Checkout pmacct
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           path: pmacct
@@ -235,12 +235,11 @@ jobs:
           TAG=_build docker-compose -f ci/smoke-test/docker-compose.yml down
 
       - name: Export pmacct docker images as an artifact
-        uses: actions/upload-artifact@v2.2.2
+        uses: actions/upload-artifact@v4
         with:
           name: pmacct_docker_images
           retention-days: 1
-          path: |
-            /tmp/docker
+          path: /tmp/docker
 
   ### Step 4: Upload images to dockerhub (bleeding-edge, latest and releases)
   publish-dockerhub:
@@ -251,7 +250,7 @@ jobs:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: pmacct_docker_images
           path: /tmp/docker
@@ -342,3 +341,197 @@ jobs:
               docker push ${DOCKER_USERNAME}/pmtelemetryd:latest;
             fi
           fi
+
+  ### Step 5: Regression Testing (powered by https://github.com/network-analytics/pmacct-test-automation)
+  ### Build Traffic Reproducer Images
+  traf-repro-docker:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout Framework
+        uses: actions/checkout@v4
+        with:
+          repository: network-analytics/pmacct-test-automation
+          ref: 'dev-actions'
+          token: ${{ secrets.PMACCT_TEST_AUTOMATION_PAT }}
+          path: pmacct-test-automation
+          submodules: recursive
+
+      - name: Create Traffic Reproducer Docker Images
+        run: |
+          sudo apt update
+          sudo apt install docker
+          cd pmacct-test-automation
+          tools/pcap_player/build_docker_images.sh
+
+      - name: Check Images and Save as Artifacts
+        run: |
+          echo "Checking Images..."
+          docker images | grep _build
+          echo
+          echo "Saving images as artifacts..."
+          mkdir -p /tmp/docker/
+          docker save -o /tmp/docker/traffic_reproducer_docker_images.tar traffic-reproducer:_build traffic-reproducer-multi:_build
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          retention-days: 1
+          name: traffic_reproducer_docker_images
+          path: /tmp/docker
+
+  ### Setup Framework and Run Tests
+  pytest-runtests:
+    needs: [traf-repro-docker, pmacct-docker]
+    runs-on: ubuntu-22.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        test: [100, 101, 102, 103, 104,
+               110, 111,
+               200, 201, 202, 203, 204, 205,
+               300, 301, 302,
+               400, 401,
+               500, 501, 502,
+               900, 901, 902]
+
+    steps:
+      - name: Checkout Framework
+        uses: actions/checkout@v4
+        with:
+          repository: network-analytics/pmacct-test-automation
+          ref: 'dev-actions'
+          token: ${{ secrets.PMACCT_TEST_AUTOMATION_PAT }}
+          path: pmacct-test-automation
+          submodules: recursive
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Framework Requirements
+        run: |
+          sudo apt update
+          sudo apt install librdkafka-dev docker
+          pip install --upgrade pip
+          pip install -r pmacct-test-automation/requirements.txt
+          docker-compose --env-file pmacct-test-automation/settings.conf -f pmacct-test-automation/library/sh/kafka_compose/docker-compose.yml pull
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: '*_docker_images'
+          path: /tmp/docker
+
+      - name: Import images in the local registry
+        run: |
+          docker load -i /tmp/docker/pmacct_docker_images/pmacct_docker_images.tar
+          docker load -i /tmp/docker/traffic_reproducer_docker_images/traffic_reproducer_docker_images.tar
+          echo "List Images"
+          docker images | grep _build
+
+      - name: Run the test
+        run: |
+          cd pmacct-test-automation
+          sudo env PATH="$PATH" ./runtest.sh ${{ matrix.test }}
+
+      - name: Prepare Results Folder for Upload (permissions and folder name)
+        if: '!cancelled()'                            # always run this step, unless job manually cancelled
+        run: |
+          cd pmacct-test-automation
+          sudo chown -R 1000:1000 results/
+          sudo chmod -R 777 results/
+          echo "Adjust results folder name (when : or * is used as part of ./runtest.sh argument...)"
+          TEST_FOLDER_NAME=$( echo ${{ matrix.test }} | sed 's/\*/x/g' )
+          TEST_FOLDER_NAME=$( echo $TEST_FOLDER_NAME | sed 's/\:/_/g' )
+          echo "TEST_FOLDER_NAME=$TEST_FOLDER_NAME" >> "$GITHUB_ENV"
+
+      - name: Upload Results Folder
+        if: '!cancelled()'                            # always run this step, unless job manually cancelled
+        uses: actions/upload-artifact@v4
+        with:
+          retention-days: 1
+          name: "test_results_${{ env.TEST_FOLDER_NAME }}"
+          path: pmacct-test-automation/results
+
+  # Expose Results as Artifacts
+  pytest-results:
+    if: '!cancelled()'                                # always run this job, unless job manually cancelled
+    needs: pytest-runtests
+    runs-on: ubuntu-22.04
+    permissions:                                      # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+      pages: write                                    #  --> to deploy to Pages
+      id-token: write                                 #  --> to verify the deployment originates from an appropriate source
+    steps:
+      - name: Download Results Folder
+        uses: actions/download-artifact@v4
+        with:
+          pattern: test_results_*
+          path: results
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Requirements
+        run: |
+          pip install --upgrade pip
+          pip install pytest-html-merger
+
+      - name: Merge results (test logs, global logs, and reports) in a single folder
+        run: |
+          mkdir test_results_merged
+          cat results/**/pytestlog.log > test_results_merged/pytestlog.log
+          cat results/**/monitor.log > test_results_merged/monitor.log
+          find results/**/* -maxdepth 0 -type d -exec cp -r {} test_results_merged/ \;
+          mkdir tmp_html
+          randomname() { head -c16 /dev/urandom | base64 | tr -dc a-zA-Z; }
+          for f in results/**/report.html; do mv "$f" tmp_html/`randomname`.html; done
+          array_of_assets_dirs=($(find results/**/assets -maxdepth 0 -type d))
+          cp -R ${array_of_assets_dirs[0]} tmp_html
+          pytest_html_merger -i tmp_html -o test_results_merged/report_merged.html
+          cp -R tmp_html/assets test_results_merged
+
+      - name: Upload Merged Results Folder
+        uses: actions/upload-artifact@v4
+        with:
+          retention-days: 15
+          name: test_results
+          path: test_results_merged
+
+      - name: Create folder to deploy to pages and fix permissions
+        run: |
+          mkdir github-pages
+          cp -R test_results_merged/assets github-pages
+          cp test_results_merged/report_merged.html github-pages/index.html
+          chmod -c -R +rX github-pages | while read line; do
+            echo "::warning title=Invalid file permissions automatically fixed::$line"
+          done
+
+      - name: Upload HTML report as github pages artifact (will be deployed by next job)
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: github-pages/
+
+  # Deploy HTML report with github pages
+  pytest-html-report-deploy:
+    if: '!cancelled()'                                # always run this job, unless job manually cancelled
+    needs: pytest-results
+    runs-on: ubuntu-22.04
+    permissions:                                      # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+      pages: write                                    #  --> to deploy to Pages
+      id-token: write                                 #  --> to verify the deployment originates from an appropriate source
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}   # TODO: add hash to the URL s.t. the deployment does not overwrite previous ones (and also add retention..)
+    steps:
+      - name: Deploy artifact to Github Pages
+        uses: actions/deploy-pages@v4
+        id: deployment
+
+      - name: Add info to markdown summary
+        run: |
+          echo "# :loudspeaker: Pytest Quick Report: :loudspeaker:" >> $GITHUB_STEP_SUMMARY
+          echo "ADD SOME SMALL SUMMARY HERE (nr of test failes, passed, etc..) --> e.g. take small summary output (that when test are failing is in the log, and pipe it together here)"

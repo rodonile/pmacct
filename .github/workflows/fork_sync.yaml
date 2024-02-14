@@ -1,0 +1,19 @@
+name: fork_sync
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/30 * * * *' # every 30 minutes
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - run: gh repo sync $REPO --source $PARENT_REPO -b $BRANCH
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: rodonile/pmacct
+          PARENT_REPO: pmacct/pmacct
+          BRANCH: master
