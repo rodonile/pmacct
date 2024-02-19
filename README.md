@@ -1,5 +1,7 @@
 [![Build status](https://github.com/pmacct/pmacct/workflows/ci/badge.svg?branch=master)](https://github.com/pmacct/pmacct/actions)
 
+TESTING
+
 DOCUMENTATION
 =============
 
