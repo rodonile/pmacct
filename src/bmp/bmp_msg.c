@@ -167,7 +167,6 @@ void bmp_process_msg_init(struct bmp_peer *bmpp, ParsedBmp *parsed_bmp) {
   CSlice_bmp_log_tlv tlv_slice = tlv_result.ok;
 
   for (struct bmp_log_tlv *tlv = tlv_slice.base_ptr; tlv && tlv < tlv_slice.end_ptr; tlv += 1) {
-    // TODO copy *tlv->val and realloc it if bmp_dump_se_ll_append stores it
     if (bmp_tlv_list_add(tlvs, tlv->pen, tlv->type, tlv->len, tlv->val) == ERR) {
       Log(LOG_ERR, "ERROR ( %s/%s ): [%s] [init] bmp_tlv_list_add() failed.\n", config.name, bms->log_str,
           peer->addr_str);
@@ -298,18 +297,8 @@ bmp_process_msg_peer_up(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp
 
   memset(&bdata, 0, sizeof(bdata));
 
-  if (!bmp_get_and_check_length(bmp_packet, len, sizeof(struct bmp_peer_hdr))) {
-    Log(LOG_INFO, "INFO ( %s/%s ): [%s] [peer up] packet discarded: failed bmp_get_and_check_length() BMP peer hdr\n",
-        config.name, bms->log_str, peer->addr_str);
-    return;
-  }
-
-  if (!bmp_get_and_check_length(bmp_packet, len, sizeof(struct bmp_peer_up_hdr))) {
-    Log(LOG_INFO,
-        "INFO ( %s/%s ): [%s] [peer up] packet discarded: failed bmp_get_and_check_length() BMP peer up hdr\n",
-        config.name, bms->log_str, peer->addr_str);
-    return;
-  }
+  bmp_get_and_check_length(bmp_packet, len, sizeof(struct bmp_peer_hdr));
+  bmp_get_and_check_length(bmp_packet, len, sizeof(struct bmp_peer_up_hdr));
 
   BmpPeerHdrDataResult bdata_res = netgauze_bmp_peer_hdr_get_data(netgauze_parsed->message);
   if (bdata_res.tag == Ok_bmp_data__BmpParseError) {
@@ -338,6 +327,20 @@ bmp_process_msg_peer_up(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp
   memset(&bgp_peer_rem, 0, sizeof(bgp_peer_rem));
   memset(&bmd, 0, sizeof(bmd));
   memset(&bmed_bmp, 0, sizeof(bmed_bmp));
+
+
+  BmpPeerUpOpenResult peer_up_open = netgauze_bmp_peer_up_get_open_rx(netgauze_parsed->message);
+  if (peer_up_open.tag == Ok______BgpMessageOpaque__BmpParseError) {
+
+    Log(LOG_INFO, "INFO ( %s/%s ): [%s] [peer up] netgauze got bmp open rx\n",
+        config.name, bms->log_str, peer->addr_str);
+
+    test_check_bgp_open(peer_up_open.ok);
+
+  } else {
+    Log(LOG_INFO, "INFO ( %s/%s ): [%s] [peer up] netgauze could not get bmp open rx\n",
+        config.name, bms->log_str, peer->addr_str);
+  }
 
 
   BmpPeerUpHdrResult peer_up_hdr_res = netgauze_bmp_peer_up_get_hdr(netgauze_parsed->message);
@@ -451,7 +454,6 @@ bmp_process_msg_peer_up(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp
 
   CSlice_bmp_log_tlv tlv_list = tlv_result.ok;
   for (struct bmp_log_tlv *tlv = tlv_list.base_ptr; tlv && tlv < tlv_list.end_ptr; tlv += 1) {
-    // TODO copy *tlv->val and realloc it if bmp_dump_se_ll_append stores it
       if (bmp_tlv_list_add(tlvs, tlv->pen, tlv->type, tlv->len, tlv->val) == ERR) {
         Log(LOG_ERR, "INFO ( %s/%s ): [%s] [peer up] bmp_tlv_list_add failed\n",
             config.name, bms->log_str, peer->addr_str);
@@ -670,12 +672,7 @@ void bmp_process_msg_route_monitor(char **bmp_packet, u_int32_t *len, struct bmp
 
   memset(&bdata, 0, sizeof(bdata));
 
-  if (!bmp_get_and_check_length(bmp_packet, len, sizeof(struct bmp_peer_hdr))) {
-    Log(LOG_INFO,
-        "INFO ( %s/%s ): [%s] [route monitor] packet discarded: failed bmp_get_and_check_length() BMP peer hdr\n",
-        config.name, bms->log_str, peer->addr_str);
-    return;
-  }
+  bmp_get_and_check_length(bmp_packet, len, sizeof(struct bmp_peer_hdr));
 
   BmpPeerHdrDataResult bdata_result = netgauze_bmp_peer_hdr_get_data(netgauze_parsed->message);
   if (bdata_result.tag == Err_bmp_data__BmpParseError) {
@@ -748,6 +745,7 @@ void bmp_process_msg_route_monitor(char **bmp_packet, u_int32_t *len, struct bmp
     return;
   }
 
+  // keep this until netgauze supports bmpv4
   if (peer->version == BMP_V4 && bgp_update_len && bgp_update_len < (*len)) {
     struct bmp_tlv_hdr *bth;
     u_int16_t bmp_tlv_type, bmp_tlv_len;
@@ -803,17 +801,16 @@ void bmp_process_msg_route_monitor(char **bmp_packet, u_int32_t *len, struct bmp
     bmed_bmp.tlvs = tlvs;
   }
 
-  BmpBgpResult bgp_result = netgauze_bgp_parse_nlri(&bmpp->self, netgauze_parsed->message);
+  BmpBgpUpdateResult bgp_result = netgauze_bgp_parse_nlri(&bmpp->self, netgauze_parsed->message);
 
-  if (bgp_result.tag == Err_ParsedBgp__ParseError) {
+  if (bgp_result.tag == Err_ParsedBgpUpdate__ParseError) {
     return;
   }
 
-  ParsedBgp bgp_parsed = bgp_result.ok;
+  ParsedBgpUpdate bgp_parsed = bgp_result.ok;
 
-  ProcessPacket *pkt;
   for (int i = 0; i < bgp_parsed.packets.len; i += 1) {
-    pkt = &bgp_parsed.packets.base_ptr[i];
+    ProcessPacket *pkt = &bgp_parsed.packets.base_ptr[i];
 
     if (pkt->update_type == BGP_NLRI_UPDATE) {
       bgp_process_update(&bmd, &pkt->prefix, &pkt->attr, &pkt->attr_extra, pkt->afi, pkt->safi, i);
