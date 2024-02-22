@@ -95,7 +95,7 @@ u_int32_t bmp_process_packet(char *bmp_packet, u_int32_t len, struct bmp_peer *b
         bmp_process_msg_route_monitor(&bmp_packet_ptr, &msg_len, bmpp, &parsed_bmp);
         break;
       case BMP_MSG_STATS:
-        bmp_process_msg_stats(&bmp_packet_ptr, &msg_len, bmpp);
+        bmp_process_msg_stats(&bmp_packet_ptr, &msg_len, bmpp, &parsed_bmp);
         break;
       case BMP_MSG_PEER_DOWN:
         bmp_process_msg_peer_down(&bmp_packet_ptr, &msg_len, bmpp);
@@ -352,9 +352,9 @@ bmp_process_msg_peer_up(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp
     return;
   }
 
-  netgauze_bgp_process_open(peer_up_open_rx.ok, &bgp_peer_loc);
+  netgauze_bgp_process_open(peer_up_open_rx.ok.message, &bgp_peer_loc);
 
-  bmp_get_and_check_length(bmp_packet, len, bgp_open_len);
+  bmp_get_and_check_length(bmp_packet, len, peer_up_open_rx.ok.message_size);
   memcpy(&bmpp->self.id, &bgp_peer_loc.id, sizeof(struct host_addr));
   memcpy(&bgp_peer_loc.addr, &blpu.local_ip, sizeof(struct host_addr));
 
@@ -368,9 +368,9 @@ bmp_process_msg_peer_up(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp
     return;
   }
 
-  netgauze_bgp_process_open(peer_up_open_tx.ok, &bgp_peer_rem);
+  netgauze_bgp_process_open(peer_up_open_tx.ok.message, &bgp_peer_rem);
 
-  bmp_get_and_check_length(bmp_packet, len, bgp_open_len);
+  bmp_get_and_check_length(bmp_packet, len, peer_up_open_tx.ok.message_size);
   memcpy(&bgp_peer_rem.addr, &bdata.peer_ip, sizeof(struct host_addr));
 
   /* sync capabilities between loc/rem and remote->id becomes remote->addr */
@@ -806,19 +806,12 @@ void bmp_process_msg_route_mirror(char **bmp_packet, u_int32_t *len, struct bmp_
   // XXX: maybe support route mirroring
 }
 
-void bmp_process_msg_stats(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp) {
+void bmp_process_msg_stats(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp, const ParsedBmp *parsed_bmp) {
   struct bgp_misc_structs *bms;
   struct bgp_peer *peer;
   struct bmp_data bdata;
-  struct bmp_peer_hdr *bph;
-  struct bmp_stats_hdr *bsh;
   struct bmp_stats_cnt_hdr *bsch;
-  u_int64_t cnt_data64;
-  u_int32_t index, count = 0, cnt_data32;
-  u_int16_t cnt_type, cnt_len;
-  afi_t afi;
-  safi_t safi;
-  int ret;
+  u_int16_t cnt_len;
 
   /* unknown stats TLVs */
   char *cnt_value;
@@ -833,156 +826,65 @@ void bmp_process_msg_stats(char **bmp_packet, u_int32_t *len, struct bmp_peer *b
 
   memset(&bdata, 0, sizeof(bdata));
 
-  if (!(bph = (struct bmp_peer_hdr *) bmp_get_and_check_length(bmp_packet, len, sizeof(struct bmp_peer_hdr)))) {
-    Log(LOG_INFO, "INFO ( %s/%s ): [%s] [stats] packet discarded: failed bmp_get_and_check_length() BMP peer hdr\n",
+  bmp_get_and_check_length(bmp_packet, len, sizeof(struct bmp_peer_hdr));
+  bmp_get_and_check_length(bmp_packet, len, sizeof(struct bmp_stats_hdr));
+
+  BmpPeerHdrDataResult bdata_result = netgauze_bmp_peer_hdr_get_data(parsed_bmp->message);
+  if (bdata_result.tag == Err_bmp_data__BmpParseError) {
+    Log(LOG_INFO, "INFO ( %s/%s ): [%s] [stats] netgauze could not get bmp peer header data\n",
         config.name, bms->log_str, peer->addr_str);
     return;
   }
 
-  if (!(bsh = (struct bmp_stats_hdr *) bmp_get_and_check_length(bmp_packet, len, sizeof(struct bmp_stats_hdr)))) {
-    Log(LOG_INFO, "INFO ( %s/%s ): [%s] [stats] packet discarded: failed bmp_get_and_check_length() BMP stats hdr\n",
-        config.name, bms->log_str, peer->addr_str);
-    return;
-  }
-
-  bmp_peer_hdr_get_peer_type(bph, &bdata.chars.peer_type);
-  if (bdata.chars.peer_type == BMP_PEER_TYPE_LOC_RIB) {
-    bmp_peer_hdr_get_f_flag(bph, &bdata.chars.is_filtered);
-    bdata.chars.is_loc = TRUE;
-  } else {
-    bmp_peer_hdr_get_v_flag(bph, &bdata.family);
-    bmp_peer_hdr_get_l_flag(bph, &bdata.chars.is_post);
-    bmp_peer_hdr_get_o_flag(bph, &bdata.chars.is_out);
-  }
-
-  bmp_peer_hdr_get_peer_ip(bph, &bdata.peer_ip, &bdata.family);
-  bmp_peer_hdr_get_bgp_id(bph, &bdata.bgp_id);
-  bmp_peer_hdr_get_rd(bph, &bdata.chars.rd);
-  bmp_peer_hdr_get_tstamp(bph, &bdata.tstamp);
-  bmp_peer_hdr_get_peer_asn(bph, &bdata.peer_asn);
-  bmp_stats_hdr_get_count(bsh, &count);
+  bdata = bdata_result.ok;
   bmp_rib_type_set(&bdata.chars);
 
-  if (!bdata.family) return;
+  BmpStatsResult stats_result = netgauze_bmp_stats_get_stats(parsed_bmp->message);
+  if (stats_result.tag == CResult_CSlice_bmp_log_stats_____BmpStatisticsError_Err_CSlice_bmp_log_stats_____BmpStatisticsError) {
+    Log(LOG_INFO, "INFO ( %s/%s ): [%s] [stats] netgauze could not get stats count\n",
+        config.name, bms->log_str, peer->addr_str);
+    return;
+  }
+
+  CSlice_bmp_log_stats stats = stats_result.ok;
+
+  if (!bdata.family) goto cleanup;
 
   gettimeofday(&bdata.tstamp_arrival, NULL);
 
-  for (index = 0; index < count; index++) {
-    if (!(bsch = (struct bmp_stats_cnt_hdr *) bmp_get_and_check_length(bmp_packet, len,
-                                                                       sizeof(struct bmp_stats_cnt_hdr)))) {
+  for (int index = 0; index < stats.len; index++) {
+    if (!(bsch = (struct bmp_stats_cnt_hdr *) bmp_get_and_check_length(bmp_packet, len, sizeof(struct bmp_stats_cnt_hdr)))) {
       Log(LOG_INFO,
           "INFO ( %s/%s ): [%s] [stats] packet discarded: failed bmp_get_and_check_length() BMP stats cnt hdr #%u\n",
           config.name, bms->log_str, peer->addr_str, index);
-      return;
+      goto cleanup;
     }
 
-    cnt_value = 0;
-    tlvs = bmp_tlv_list_new(NULL, bmp_tlv_list_node_del);
-    if (!tlvs) return;
-
-    bmp_stats_cnt_hdr_get_type(bsch, &cnt_type);
     bmp_stats_cnt_hdr_get_len(bsch, &cnt_len);
-    cnt_data32 = 0, cnt_data64 = 0, afi = 0, safi = 0;
-
-    switch (cnt_type) {
-      case BMP_STATS_TYPE0:
-        if (cnt_len == 4) bmp_stats_cnt_get_data32(bmp_packet, len, &cnt_data32);
-        break;
-      case BMP_STATS_TYPE1:
-        if (cnt_len == 4) bmp_stats_cnt_get_data32(bmp_packet, len, &cnt_data32);
-        break;
-      case BMP_STATS_TYPE2:
-        if (cnt_len == 4) bmp_stats_cnt_get_data32(bmp_packet, len, &cnt_data32);
-        break;
-      case BMP_STATS_TYPE3:
-        if (cnt_len == 4) bmp_stats_cnt_get_data32(bmp_packet, len, &cnt_data32);
-        break;
-      case BMP_STATS_TYPE4:
-        if (cnt_len == 4) bmp_stats_cnt_get_data32(bmp_packet, len, &cnt_data32);
-        break;
-      case BMP_STATS_TYPE5:
-        if (cnt_len == 4) bmp_stats_cnt_get_data32(bmp_packet, len, &cnt_data32);
-        break;
-      case BMP_STATS_TYPE6:
-        if (cnt_len == 4) bmp_stats_cnt_get_data32(bmp_packet, len, &cnt_data32);
-        break;
-      case BMP_STATS_TYPE7:
-        if (cnt_len == 8) bmp_stats_cnt_get_data64(bmp_packet, len, &cnt_data64);
-        break;
-      case BMP_STATS_TYPE8:
-        if (cnt_len == 8) bmp_stats_cnt_get_data64(bmp_packet, len, &cnt_data64);
-        break;
-      case BMP_STATS_TYPE9:
-        if (cnt_len == 11) bmp_stats_cnt_get_afi_safi_data64(bmp_packet, len, &afi, &safi, &cnt_data64);
-        break;
-      case BMP_STATS_TYPE10:
-        if (cnt_len == 11) bmp_stats_cnt_get_afi_safi_data64(bmp_packet, len, &afi, &safi, &cnt_data64);
-        break;
-      case BMP_STATS_TYPE11:
-        if (cnt_len == 4) bmp_stats_cnt_get_data32(bmp_packet, len, &cnt_data32);
-        break;
-      case BMP_STATS_TYPE12:
-        if (cnt_len == 4) bmp_stats_cnt_get_data32(bmp_packet, len, &cnt_data32);
-        break;
-      case BMP_STATS_TYPE13:
-        if (cnt_len == 4) bmp_stats_cnt_get_data32(bmp_packet, len, &cnt_data32);
-        break;
-      case BMP_STATS_TYPE14:
-        if (cnt_len == 8) bmp_stats_cnt_get_data64(bmp_packet, len, &cnt_data64);
-        break;
-      case BMP_STATS_TYPE15:
-        if (cnt_len == 8) bmp_stats_cnt_get_data64(bmp_packet, len, &cnt_data64);
-        break;
-      case BMP_STATS_TYPE16:
-        if (cnt_len == 11) bmp_stats_cnt_get_afi_safi_data64(bmp_packet, len, &afi, &safi, &cnt_data64);
-        break;
-      case BMP_STATS_TYPE17:
-        if (cnt_len == 11) bmp_stats_cnt_get_afi_safi_data64(bmp_packet, len, &afi, &safi, &cnt_data64);
-        break;
-      default:
-        if (!(cnt_value = bmp_get_and_check_length(bmp_packet, len, cnt_len))) {
-          Log(LOG_INFO,
-              "INFO ( %s/%s ): [%s] [stats] packet discarded: failed bmp_get_and_check_length() BMP TLV info\n",
-              config.name, bms->log_str, peer->addr_str);
-          bmp_tlv_list_destroy(tlvs);
-          return;
-        }
-
-        ret = bmp_tlv_list_add(tlvs, 0, cnt_type, cnt_len, cnt_value);
-        if (ret == ERR) {
-          Log(LOG_ERR, "ERROR ( %s/%s ): [%s] [stats] bmp_tlv_list_add() failed.\n", config.name, bms->log_str,
-              peer->addr_str);
-          exit_gracefully(1);
-        }
-
-        break;
+    if (!bmp_get_and_check_length(bmp_packet, len, cnt_len)) {
+      Log(LOG_INFO,
+          "INFO ( %s/%s ): [%s] [stats] packet discarded: failed bmp_get_and_check_length() BMP stats value\n",
+          config.name, bms->log_str, peer->addr_str);
+      goto cleanup;
     }
 
-    if (cnt_data32 && !cnt_data64) cnt_data64 = cnt_data32;
+    // TODO handle tlvs when bmpv4 is supported by netgauze
+    tlvs = NULL;
+    struct bmp_log_stats stat = stats.base_ptr[index];
 
-    {
-      struct bmp_log_stats blstats;
+    if (bms->msglog_backend_methods)
+      bmp_log_msg(peer, &bdata, tlvs, &bmp_logdump_tag, &stat, bgp_peer_log_seq_get(&bms->log_seq), "log",
+                  config.bmp_daemon_msglog_output, BMP_LOG_TYPE_STATS);
 
-      memset(&blstats, 0, sizeof(blstats));
-      blstats.cnt_type = cnt_type;
-      blstats.cnt_afi = afi;
-      blstats.cnt_safi = safi;
-      blstats.cnt_data = cnt_data64;
+    if (bms->dump_backend_methods&& !config.bmp_dump_exclude_stats) bmp_dump_se_ll_append(peer, &bdata, tlvs, &stat, BMP_LOG_TYPE_STATS);
 
-      if (bms->msglog_backend_methods) {
-        char event_type[] = "log";
+    if (bms->msglog_backend_methods || bms->dump_backend_methods) bgp_peer_log_seq_increment(&bms->log_seq);
 
-        bmp_log_msg(peer, &bdata, tlvs, &bmp_logdump_tag, &blstats, bgp_peer_log_seq_get(&bms->log_seq), event_type,
-                      config.bmp_daemon_msglog_output, BMP_LOG_TYPE_STATS);
-      }
-
-      if (bms->dump_backend_methods && !config.bmp_dump_exclude_stats) bmp_dump_se_ll_append(peer, &bdata, tlvs, &blstats, BMP_LOG_TYPE_STATS);
-
-      if (bms->msglog_backend_methods || bms->dump_backend_methods) bgp_peer_log_seq_increment(&bms->log_seq);
-
-        if (!pm_listcount(tlvs) || !bms->dump_backend_methods|| config.bmp_dump_exclude_stats) bmp_tlv_list_destroy(tlvs);
-    }
+    if (tlvs && (!pm_listcount(tlvs) || !bms->dump_backend_methods)) bmp_tlv_list_destroy(tlvs);
   }
+
+cleanup:
+  CSlice_free_bmp_log_stats(stats);
 }
 
 void bmp_common_hdr_get_len(struct bmp_common_hdr *bch, u_int32_t *len) {

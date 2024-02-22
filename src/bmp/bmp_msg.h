@@ -33,7 +33,7 @@ extern void bmp_process_msg_init(struct bmp_peer *, ParsedBmp *);
 extern void bmp_process_msg_term(char **, u_int32_t *, struct bmp_peer *);
 extern void bmp_process_msg_peer_up(char **, u_int32_t *, struct bmp_peer *, const ParsedBmp *);
 extern void bmp_process_msg_peer_down(char **, u_int32_t *, struct bmp_peer *);
-extern void bmp_process_msg_stats(char **, u_int32_t *, struct bmp_peer *);
+extern void bmp_process_msg_stats(char **, u_int32_t *, struct bmp_peer *, const ParsedBmp *);
 extern void bmp_process_msg_route_monitor(char **, u_int32_t *, struct bmp_peer *, const ParsedBmp *);
 extern void bmp_process_msg_route_mirror(char **, u_int32_t *, struct bmp_peer *);
 
