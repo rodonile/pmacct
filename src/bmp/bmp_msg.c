@@ -328,21 +328,6 @@ bmp_process_msg_peer_up(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp
   memset(&bmd, 0, sizeof(bmd));
   memset(&bmed_bmp, 0, sizeof(bmed_bmp));
 
-
-  BmpPeerUpOpenResult peer_up_open = netgauze_bmp_peer_up_get_open_rx(netgauze_parsed->message);
-  if (peer_up_open.tag == Ok______BgpMessageOpaque__BmpParseError) {
-
-    Log(LOG_INFO, "INFO ( %s/%s ): [%s] [peer up] netgauze got bmp open rx\n",
-        config.name, bms->log_str, peer->addr_str);
-
-    test_check_bgp_open(peer_up_open.ok);
-
-  } else {
-    Log(LOG_INFO, "INFO ( %s/%s ): [%s] [peer up] netgauze could not get bmp open rx\n",
-        config.name, bms->log_str, peer->addr_str);
-  }
-
-
   BmpPeerUpHdrResult peer_up_hdr_res = netgauze_bmp_peer_up_get_hdr(netgauze_parsed->message);
   if (peer_up_hdr_res.tag == Ok_bmp_log_peer_up__BmpParseError) {
     blpu = peer_up_hdr_res.ok;
@@ -360,34 +345,14 @@ bmp_process_msg_peer_up(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp
   bmd.extra.data = &bmed_bmp;
   bgp_msg_data_set_data_bmp(&bmed_bmp, &bdata);
 
-  /* length checks */
-  if ((*len) >= sizeof(struct bgp_header)) {
-    bgp_open_len = bgp_get_packet_len((*bmp_packet));
-    if (bgp_open_len <= 0 || bgp_open_len > (*len)) {
-      Log(LOG_INFO, "INFO ( %s/%s ): [%s] [peer up] packet discarded: failed bgp_get_packet_len()\n",
-          config.name, bms->log_str, peer->addr_str);
-      return;
-    }
-  } else {
-    Log(LOG_INFO, "INFO ( %s/%s ): [%s] [peer_up] packet discarded: incomplete BGP header\n",
+  BmpPeerUpOpenResult peer_up_open_rx = netgauze_bmp_peer_up_get_open_rx(netgauze_parsed->message);
+  if (peer_up_open_rx.tag == Err______BgpMessageOpaque__BmpParseError) {
+    Log(LOG_INFO, "INFO ( %s/%s ): [%s] [peer up] netgauze could not get bmp open rx\n",
         config.name, bms->log_str, peer->addr_str);
     return;
   }
 
-  if ((bgp_msg_type = bgp_get_packet_type((*bmp_packet))) == BGP_OPEN) {
-    bgp_open_len = bgp_parse_open_msg(&bmd, (*bmp_packet), FALSE, FALSE);
-    if (bgp_open_len == ERR) {
-      Log(LOG_INFO, "INFO ( %s/%s ): [%s] [peer up] packet discarded: failed bgp_parse_open_msg()\n",
-          config.name, bms->log_str, peer->addr_str);
-      return;
-    }
-  } else {
-    Log(LOG_INFO, "INFO ( %s/%s ): [%s] [peer up] packet discarded: wrong BGP message type: %s (%u)\n",
-        config.name, bms->log_str, peer->addr_str,
-        (bgp_msg_type <= BGP_MSG_TYPE_MAX ? bgp_msg_types[bgp_msg_type] : bgp_msg_types[0]),
-        bgp_msg_type);
-    return;
-  }
+  netgauze_bgp_process_open(peer_up_open_rx.ok, &bgp_peer_loc);
 
   bmp_get_and_check_length(bmp_packet, len, bgp_open_len);
   memcpy(&bmpp->self.id, &bgp_peer_loc.id, sizeof(struct host_addr));
@@ -396,32 +361,14 @@ bmp_process_msg_peer_up(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp
   bgp_peer_rem.type = FUNC_TYPE_BMP;
   bmd.peer = &bgp_peer_rem;
 
-      /* length checks */
-      if ((*len) >= sizeof(struct bgp_header)) {
-        bgp_open_len = bgp_get_packet_len((*bmp_packet));
-        if (bgp_open_len <= 0 || bgp_open_len > (*len)) {
-          Log(LOG_INFO, "INFO ( %s/%s ): [%s] [peer up] packet discarded: failed bgp_get_packet_len() (2)\n",
-              config.name, bms->log_str, peer->addr_str);
-          return;
-        }
-      } else {
-        Log(LOG_INFO, "INFO ( %s/%s ): [%s] [peer_up] packet discarded: incomplete BGP header (2)\n",
-            config.name, bms->log_str, peer->addr_str);
-        return;
-      }
+  BmpPeerUpOpenResult peer_up_open_tx = netgauze_bmp_peer_up_get_open_tx(netgauze_parsed->message);
+  if (peer_up_open_tx.tag == Err______BgpMessageOpaque__BmpParseError) {
+    Log(LOG_INFO, "INFO ( %s/%s ): [%s] [peer up] netgauze could not get bmp open rx\n",
+        config.name, bms->log_str, peer->addr_str);
+    return;
+  }
 
-      if ((bgp_msg_type = bgp_get_packet_type((*bmp_packet))) == BGP_OPEN) {
-        bgp_open_len = bgp_parse_open_msg(&bmd, (*bmp_packet), FALSE, FALSE);
-        if (bgp_open_len == ERR) {
-          Log(LOG_INFO, "INFO ( %s/%s ): [%s] [peer up] packet discarded: failed bgp_parse_open_msg() (2)\n",
-              config.name, bms->log_str, peer->addr_str);
-          return;
-        }
-      } else {
-        Log(LOG_INFO, "INFO ( %s/%s ): [%s] [peer up] packet discarded: wrong BGP message type: %u (2)\n",
-            config.name, bms->log_str, peer->addr_str, bgp_msg_type);
-        return;
-      }
+  netgauze_bgp_process_open(peer_up_open_tx.ok, &bgp_peer_rem);
 
   bmp_get_and_check_length(bmp_packet, len, bgp_open_len);
   memcpy(&bgp_peer_rem.addr, &bdata.peer_ip, sizeof(struct host_addr));
