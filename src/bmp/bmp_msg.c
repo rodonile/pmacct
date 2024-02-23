@@ -98,7 +98,7 @@ u_int32_t bmp_process_packet(char *bmp_packet, u_int32_t len, struct bmp_peer *b
         bmp_process_msg_stats(&bmp_packet_ptr, &msg_len, bmpp, &parsed_bmp);
         break;
       case BMP_MSG_PEER_DOWN:
-        bmp_process_msg_peer_down(&bmp_packet_ptr, &msg_len, bmpp);
+        bmp_process_msg_peer_down(&bmp_packet_ptr, &msg_len, bmpp, &parsed_bmp);
         break;
       case BMP_MSG_PEER_UP:
         bmp_process_msg_peer_up(&bmp_packet_ptr, &msg_len, bmpp, &parsed_bmp);
@@ -424,7 +424,7 @@ bmp_process_msg_peer_up(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp
   CSlice_free_bmp_log_tlv(tlv_list);
 }
 
-void bmp_process_msg_peer_down(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp) {
+void bmp_process_msg_peer_down(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp, const ParsedBmp* parsed_bmp) {
   struct bgp_misc_structs *bms;
   struct bgp_peer *peer, *bmpp_bgp_peer;
   struct bmp_data bdata;
@@ -455,20 +455,14 @@ void bmp_process_msg_peer_down(char **bmp_packet, u_int32_t *len, struct bmp_pee
     return;
   }
 
-  bmp_peer_hdr_get_peer_type(bph, &bdata.chars.peer_type);
-  if (bdata.chars.peer_type == BMP_PEER_TYPE_LOC_RIB) {
-    bdata.chars.is_loc = TRUE;
-  } else {
-    bmp_peer_hdr_get_v_flag(bph, &bdata.family);
-    bmp_peer_hdr_get_l_flag(bph, &bdata.chars.is_post);
-    bmp_peer_hdr_get_o_flag(bph, &bdata.chars.is_out);
+  BmpPeerHdrDataResult peer_hdr_result = netgauze_bmp_peer_hdr_get_data(parsed_bmp->message);
+  if (peer_hdr_result.tag == CResult_bmp_data__BmpParseError_Err_bmp_data__BmpParseError) {
+    Log(LOG_INFO,
+        "INFO ( %s/%s ): [%s] [peer down] packet discarded: pmacct-gauze could not convert peer header\n",
+        config.name, bms->log_str, peer->addr_str);
+    return;
   }
-
-  bmp_peer_hdr_get_peer_ip(bph, &bdata.peer_ip, &bdata.family);
-  bmp_peer_hdr_get_bgp_id(bph, &bdata.bgp_id);
-  bmp_peer_hdr_get_rd(bph, &bdata.chars.rd);
-  bmp_peer_hdr_get_tstamp(bph, &bdata.tstamp);
-  bmp_peer_hdr_get_peer_asn(bph, &bdata.peer_asn);
+  bdata = peer_hdr_result.ok;
   bmp_rib_type_set(&bdata.chars);
 
   if (!bdata.family) return;
@@ -476,84 +470,25 @@ void bmp_process_msg_peer_down(char **bmp_packet, u_int32_t *len, struct bmp_pee
   gettimeofday(&bdata.tstamp_arrival, NULL);
 
   {
-    struct bmp_log_peer_down blpd;
-    int ret2 = 0;
+    BmpPeerDownInfoResult peer_down_result = netgauze_bmp_peer_down_get_info(parsed_bmp->message);
+    if (peer_down_result.tag == CResult_bmp_log_peer_down__BmpPeerDownError_Err_bmp_log_peer_down__BmpPeerDownError) {
+      Log(LOG_INFO,
+          "INFO ( %s/%s ): [%s] [peer down] packet discarded: pmacct-gauze could not get peer down info\n",
+          config.name, bms->log_str, peer->addr_str);
+      return;
+    }
+    struct bmp_log_peer_down blpd = peer_down_result.ok;
 
     /* TLV vars */
-    struct bmp_tlv_hdr *bth;
-    u_int16_t bmp_tlv_type, bmp_tlv_len;
-    char *bmp_tlv_value;
+    // TODO handle when netgauze supports bmpv4
     struct pm_list *tlvs = NULL;
+    /* draft-ietf-grow-bmp-tlv */
+    if (peer->version == BMP_V4) {
 
-    tlvs = bmp_tlv_list_new(NULL, bmp_tlv_list_node_del);
-    if (!tlvs) return;
+    }
 
     bmp_peer_down_hdr_get_reason(bpdh, &blpd.reason);
     if (blpd.reason == BMP_PEER_DOWN_LOC_CODE) bmp_peer_down_hdr_get_loc_code(bmp_packet, len, &blpd.loc_code);
-
-    /* draft-ietf-grow-bmp-tlv */
-    if (peer->version == BMP_V4) {
-      /* let's skip intermediate data in order to get to TLVs */
-      if (blpd.reason == BMP_PEER_DOWN_LOC_NOT_MSG || blpd.reason == BMP_PEER_DOWN_REM_NOT_MSG) {
-        int bgp_notification_len = 0;
-
-        bgp_notification_len = bgp_get_packet_len((*bmp_packet));
-        if (bgp_notification_len <= 0 || bgp_notification_len > (*len)) {
-          Log(LOG_INFO, "INFO ( %s/%s ): [%s] [peer down] packet discarded: failed bgp_get_packet_len() reason=%u\n",
-              config.name, bms->log_str, peer->addr_str, blpd.reason);
-          bmp_tlv_list_destroy(tlvs);
-          return;
-        }
-
-        bmp_jump_offset(bmp_packet, len, bgp_notification_len);
-      } else if (blpd.reason == BMP_PEER_DOWN_LOC_CODE) {
-        ret2 = bmp_jump_offset(bmp_packet, len, 2);
-        if (ret2 == ERR) {
-          Log(LOG_INFO, "INFO ( %s/%s ): [%s] [peer down] packet discarded: failed bmp_jump_offset() reason=%u\n",
-              config.name, bms->log_str, peer->addr_str, blpd.reason);
-          bmp_tlv_list_destroy(tlvs);
-          return;
-        }
-      }
-
-      while ((*len)) {
-        u_int32_t pen = 0;
-
-        if (!(bth = (struct bmp_tlv_hdr *) bmp_get_and_check_length(bmp_packet, len, sizeof(struct bmp_tlv_hdr)))) {
-          Log(LOG_INFO,
-              "INFO ( %s/%s ): [%s] [peer down] packet discarded: failed bmp_get_and_check_length() BMP TLV hdr\n",
-              config.name, bms->log_str, peer->addr_str);
-          bmp_tlv_list_destroy(tlvs);
-          return;
-        }
-
-        bmp_tlv_hdr_get_type(bth, &bmp_tlv_type);
-        bmp_tlv_hdr_get_len(bth, &bmp_tlv_len);
-        if (bmp_tlv_handle_ebit(&bmp_tlv_type)) {
-          if (!(bmp_tlv_get_pen(bmp_packet, len, &bmp_tlv_len, &pen))) {
-            Log(LOG_INFO, "INFO ( %s/%s ): [%s] [peer down] packet discarded: failed bmp_tlv_get_pen()\n",
-                config.name, bms->log_str, peer->addr_str);
-            bmp_tlv_list_destroy(tlvs);
-            return;
-          }
-        }
-
-        if (!(bmp_tlv_value = bmp_get_and_check_length(bmp_packet, len, bmp_tlv_len))) {
-          Log(LOG_INFO,
-              "INFO ( %s/%s ): [%s] [peer down] packet discarded: failed bmp_get_and_check_length() BMP TLV info\n",
-              config.name, bms->log_str, peer->addr_str);
-          bmp_tlv_list_destroy(tlvs);
-          return;
-        }
-
-        ret2 = bmp_tlv_list_add(tlvs, pen, bmp_tlv_type, bmp_tlv_len, bmp_tlv_value);
-        if (ret2 == ERR) {
-          Log(LOG_ERR, "ERROR ( %s/%s ): [%s] [peer down] bmp_tlv_list_add() failed.\n", config.name, bms->log_str,
-              peer->addr_str);
-          exit_gracefully(1);
-        }
-      }
-    }
 
     if (bms->msglog_backend_methods) {
       char event_type[] = "log";
