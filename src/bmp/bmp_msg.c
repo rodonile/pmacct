@@ -666,9 +666,9 @@ void bmp_process_msg_route_monitor(char **bmp_packet, u_int32_t *len, struct bmp
     bmed_bmp.tlvs = tlvs;
   }
 
-  BmpBgpUpdateResult bgp_result = netgauze_bgp_parse_nlri(&bmpp->self, netgauze_parsed->message);
+  BgpUpdateResult bgp_result = netgauze_bgp_update_get_updates(&bmpp->self, netgauze_parsed->message);
 
-  if (bgp_result.tag == CResult_ParsedBgpUpdate__ParseError_Err_ParsedBgpUpdate__ParseError) {
+  if (bgp_result.tag == CResult_ParsedBgpUpdate__BgpUpdateError_Err_ParsedBgpUpdate__BgpUpdateError) {
     return;
   }
 
