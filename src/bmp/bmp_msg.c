@@ -54,12 +54,12 @@ u_int32_t bmp_process_packet(char *bmp_packet, u_int32_t len, struct bmp_peer *b
   }
 
   for (msg_start_len = pkt_remaining_len = len; pkt_remaining_len; msg_start_len = pkt_remaining_len) {
-    BmpResult parse_result = netgauze_bmp_parse_packet(bmp_packet_ptr, pkt_remaining_len);
+    BmpParseResult parse_result = netgauze_bmp_parse_packet(bmp_packet_ptr, pkt_remaining_len);
 
     if (parse_result.tag == CResult_ParsedBmp__BmpParseError_Err_ParsedBmp__BmpParseError) {
       Log(LOG_INFO, "INFO ( %s/%s ): [%s] packet discarded: %s\n", config.name, bms->log_str, peer->addr_str,
-          bmp_error_str(parse_result.err));
-      bmp_result_free(parse_result);
+          bmp_parse_error_str(parse_result.err));
+      bmp_parse_result_free(parse_result);
       return FALSE;
     }
 
@@ -81,7 +81,7 @@ u_int32_t bmp_process_packet(char *bmp_packet, u_int32_t len, struct bmp_peer *b
     orig_msg_len = msg_len;
 
     if (pkt_remaining_len < msg_len) {
-      bmp_result_free(parse_result);
+      bmp_parse_result_free(parse_result);
       return msg_start_len;
     }
 
@@ -120,7 +120,7 @@ u_int32_t bmp_process_packet(char *bmp_packet, u_int32_t len, struct bmp_peer *b
         break;
     }
 
-    bmp_result_free(parse_result);
+    bmp_parse_result_free(parse_result);
 
     /* sync-up status of pkt_remaining_len to bmp_packet_ptr */
     pkt_remaining_len -= (orig_msg_len - msg_len);
@@ -160,7 +160,7 @@ void bmp_process_msg_init(struct bmp_peer *bmpp, ParsedBmp *parsed_bmp) {
 
   BmpMessageValueOpaque *msg = parsed_bmp->message;
   BmpTlvListResult tlv_result = netgauze_bmp_get_tlvs(msg);
-  if (tlv_result.tag == CResult_CSlice_bmp_log_tlv_____BmpParseError_Err_CSlice_bmp_log_tlv_____BmpParseError) {
+  if (tlv_result.tag == CResult_CSlice_bmp_log_tlv_____WrongBmpMessageTypeError_Err_CSlice_bmp_log_tlv_____WrongBmpMessageTypeError) {
     return;
   }
 
@@ -227,7 +227,7 @@ void bmp_process_msg_term(char **bmp_packet, u_int32_t *len, struct bmp_peer *bm
 
   BmpMessageValueOpaque *msg = parsed_bmp->message;
   BmpTlvListResult tlv_result = netgauze_bmp_get_tlvs(msg);
-  if (tlv_result.tag == CResult_CSlice_bmp_log_tlv_____BmpParseError_Err_CSlice_bmp_log_tlv_____BmpParseError) {
+  if (tlv_result.tag == CResult_CSlice_bmp_log_tlv_____WrongBmpMessageTypeError_Err_CSlice_bmp_log_tlv_____WrongBmpMessageTypeError) {
     return;
   }
 
@@ -286,13 +286,12 @@ bmp_process_msg_peer_up(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp
   bmp_get_and_check_length(bmp_packet, len, sizeof(struct bmp_peer_up_hdr));
 
   BmpPeerHdrDataResult bdata_res = netgauze_bmp_peer_hdr_get_data(netgauze_parsed->message);
-  if (bdata_res.tag == CResult_bmp_data__BmpParseError_Ok_bmp_data__BmpParseError) {
-    bdata = bdata_res.ok;
-  } else {
+  if (bdata_res.tag == CResult_bmp_data__WrongBmpMessageTypeError_Err_bmp_data__WrongBmpMessageTypeError) {
     Log(LOG_INFO, "INFO ( %s/%s ): [%s] [peer up] netgauze could not get bmp peer header data\n",
         config.name, bms->log_str, peer->addr_str);
     return;
   }
+  bdata = bdata_res.ok;
 
   bmp_rib_type_set(&bdata.chars);
 
@@ -314,13 +313,12 @@ bmp_process_msg_peer_up(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp
   memset(&bmed_bmp, 0, sizeof(bmed_bmp));
 
   BmpPeerUpHdrResult peer_up_hdr_res = netgauze_bmp_peer_up_get_hdr(netgauze_parsed->message);
-  if (peer_up_hdr_res.tag == CResult_bmp_log_peer_up__BmpParseError_Ok_bmp_log_peer_up__BmpParseError) {
-    blpu = peer_up_hdr_res.ok;
-  } else {
+  if (peer_up_hdr_res.tag == CResult_bmp_log_peer_up__WrongBmpMessageTypeError_Err_bmp_log_peer_up__WrongBmpMessageTypeError) {
     Log(LOG_INFO, "INFO ( %s/%s ): [%s] [peer up] netgauze could not get bmp peer up header\n",
         config.name, bms->log_str, peer->addr_str);
     return;
   }
+  blpu = peer_up_hdr_res.ok;
 
   bgp_peer_loc.type = FUNC_TYPE_BMP;
   bmd.peer = &bgp_peer_loc;
@@ -331,7 +329,7 @@ bmp_process_msg_peer_up(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp
   bgp_msg_data_set_data_bmp(&bmed_bmp, &bdata);
 
   BmpPeerUpOpenResult peer_up_open_rx = netgauze_bmp_peer_up_get_open_rx(netgauze_parsed->message);
-  if (peer_up_open_rx.tag == CResult_BmpPeerUpOpen__BmpParseError_Err_BmpPeerUpOpen__BmpParseError) {
+  if (peer_up_open_rx.tag == CResult_BmpPeerUpOpen__WrongBmpMessageTypeError_Err_BmpPeerUpOpen__WrongBmpMessageTypeError) {
     Log(LOG_INFO, "INFO ( %s/%s ): [%s] [peer up] netgauze could not get bmp open rx\n",
         config.name, bms->log_str, peer->addr_str);
     return;
@@ -347,7 +345,7 @@ bmp_process_msg_peer_up(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp
   bmd.peer = &bgp_peer_rem;
 
   BmpPeerUpOpenResult peer_up_open_tx = netgauze_bmp_peer_up_get_open_tx(netgauze_parsed->message);
-  if (peer_up_open_tx.tag == CResult_BmpPeerUpOpen__BmpParseError_Err_BmpPeerUpOpen__BmpParseError) {
+  if (peer_up_open_tx.tag == CResult_BmpPeerUpOpen__WrongBmpMessageTypeError_Err_BmpPeerUpOpen__WrongBmpMessageTypeError) {
     Log(LOG_INFO, "INFO ( %s/%s ): [%s] [peer up] netgauze could not get bmp open rx\n",
         config.name, bms->log_str, peer->addr_str);
     return;
@@ -375,7 +373,7 @@ bmp_process_msg_peer_up(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp
             peer->addr_str);
 
   BmpTlvListResult tlv_result = netgauze_bmp_get_tlvs(netgauze_parsed->message);
-  if (tlv_result.tag == CResult_CSlice_bmp_log_tlv_____BmpParseError_Err_CSlice_bmp_log_tlv_____BmpParseError) {
+  if (tlv_result.tag == CResult_CSlice_bmp_log_tlv_____WrongBmpMessageTypeError_Err_CSlice_bmp_log_tlv_____WrongBmpMessageTypeError) {
     Log(LOG_INFO, "INFO ( %s/%s ): [%s] [peer up] netgauze could not get bmp peer up header\n",
         config.name, bms->log_str, peer->addr_str);
     return;
@@ -441,7 +439,7 @@ void bmp_process_msg_peer_down(char **bmp_packet, u_int32_t *len, struct bmp_pee
   }
 
   BmpPeerHdrDataResult peer_hdr_result = netgauze_bmp_peer_hdr_get_data(parsed_bmp->message);
-  if (peer_hdr_result.tag == CResult_bmp_data__BmpParseError_Err_bmp_data__BmpParseError) {
+  if (peer_hdr_result.tag == CResult_bmp_data__WrongBmpMessageTypeError_Err_bmp_data__WrongBmpMessageTypeError) {
     Log(LOG_INFO,
         "INFO ( %s/%s ): [%s] [peer down] packet discarded: pmacct-gauze could not convert peer header\n",
         config.name, bms->log_str, peer->addr_str);
@@ -456,7 +454,7 @@ void bmp_process_msg_peer_down(char **bmp_packet, u_int32_t *len, struct bmp_pee
 
   {
     BmpPeerDownInfoResult peer_down_result = netgauze_bmp_peer_down_get_info(parsed_bmp->message);
-    if (peer_down_result.tag == CResult_bmp_log_peer_down__BmpPeerDownError_Err_bmp_log_peer_down__BmpPeerDownError) {
+    if (peer_down_result.tag == CResult_bmp_log_peer_down__WrongBmpMessageTypeError_Err_bmp_log_peer_down__WrongBmpMessageTypeError) {
       Log(LOG_INFO,
           "INFO ( %s/%s ): [%s] [peer down] packet discarded: pmacct-gauze could not get peer down info\n",
           config.name, bms->log_str, peer->addr_str);
@@ -542,7 +540,7 @@ void bmp_process_msg_route_monitor(char **bmp_packet, u_int32_t *len, struct bmp
   bmp_get_and_check_length(bmp_packet, len, sizeof(struct bmp_peer_hdr));
 
   BmpPeerHdrDataResult bdata_result = netgauze_bmp_peer_hdr_get_data(netgauze_parsed->message);
-  if (bdata_result.tag == CResult_bmp_data__BmpParseError_Err_bmp_data__BmpParseError) {
+  if (bdata_result.tag == CResult_bmp_data__WrongBmpMessageTypeError_Err_bmp_data__WrongBmpMessageTypeError) {
     Log(LOG_INFO,
         "INFO ( %s/%s ): [%s] [route monitor] netgauze could not get bmp peer up header\n",
         config.name, bms->log_str, peer->addr_str);
@@ -750,9 +748,9 @@ void bmp_process_msg_stats(char **bmp_packet, u_int32_t *len, struct bmp_peer *b
   bmp_get_and_check_length(bmp_packet, len, sizeof(struct bmp_stats_hdr));
 
   BmpPeerHdrDataResult bdata_result = netgauze_bmp_peer_hdr_get_data(parsed_bmp->message);
-  if (bdata_result.tag == CResult_bmp_data__BmpParseError_Err_bmp_data__BmpParseError) {
-    Log(LOG_INFO, "INFO ( %s/%s ): [%s] [stats] netgauze could not get bmp peer header data: %s\n",
-        config.name, bms->log_str, peer->addr_str, bmp_error_str(bdata_result.err));
+  if (bdata_result.tag == CResult_bmp_data__WrongBmpMessageTypeError_Err_bmp_data__WrongBmpMessageTypeError) {
+    Log(LOG_INFO, "INFO ( %s/%s ): [%s] [stats] netgauze could not get bmp peer header data\n",
+        config.name, bms->log_str, peer->addr_str);
     return;
   }
 
@@ -760,7 +758,7 @@ void bmp_process_msg_stats(char **bmp_packet, u_int32_t *len, struct bmp_peer *b
   bmp_rib_type_set(&bdata.chars);
 
   BmpStatsResult stats_result = netgauze_bmp_stats_get_stats(parsed_bmp->message);
-  if (stats_result.tag == CResult_CSlice_bmp_log_stats_____BmpStatisticsError_Err_CSlice_bmp_log_stats_____BmpStatisticsError) {
+  if (stats_result.tag == CResult_CSlice_bmp_log_stats_____WrongBmpMessageTypeError_Err_CSlice_bmp_log_stats_____WrongBmpMessageTypeError) {
     Log(LOG_INFO, "INFO ( %s/%s ): [%s] [stats] netgauze could not get stats count\n",
         config.name, bms->log_str, peer->addr_str);
     return;
