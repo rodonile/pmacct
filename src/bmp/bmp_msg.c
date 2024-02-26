@@ -107,7 +107,7 @@ u_int32_t bmp_process_packet(char *bmp_packet, u_int32_t len, struct bmp_peer *b
         bmp_process_msg_init(bmpp, &parsed_bmp);
         break;
       case BMP_MSG_TERM:
-        bmp_process_msg_term(&bmp_packet_ptr, &msg_len, bmpp);
+        bmp_process_msg_term(&bmp_packet_ptr, &msg_len, bmpp, &parsed_bmp);
         if (do_term) (*do_term) = TRUE;
         break;
       case BMP_MSG_ROUTE_MIRROR:
@@ -194,7 +194,7 @@ void bmp_process_msg_init(struct bmp_peer *bmpp, ParsedBmp *parsed_bmp) {
   CSlice_free_bmp_log_tlv(tlv_slice);
 }
 
-void bmp_process_msg_term(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp) {
+void bmp_process_msg_term(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp, const ParsedBmp *parsed_bmp) {
   struct bgp_misc_structs *bms;
   struct bgp_peer *peer;
   struct bmp_data bdata;
@@ -222,37 +222,20 @@ void bmp_process_msg_term(char **bmp_packet, u_int32_t *len, struct bmp_peer *bm
   gettimeofday(&bdata.tstamp_arrival, NULL);
   memset(&bdata.tstamp, 0, sizeof(struct timeval));
 
-  while ((*len)) {
-    u_int32_t pen = 0;
+  tlvs = bmp_tlv_list_new(NULL, bmp_tlv_list_node_del);
+  if (!tlvs) return;
 
-    if (!(bth = (struct bmp_tlv_hdr *) bmp_get_and_check_length(bmp_packet, len, sizeof(struct bmp_tlv_hdr)))) {
-      Log(LOG_INFO, "INFO ( %s/%s ): [%s] [term] packet discarded: failed bmp_get_and_check_length() BMP TLV hdr\n",
-          config.name, bms->log_str, peer->addr_str);
-      bmp_tlv_list_destroy(tlvs);
-      return;
-    }
+  BmpMessageValueOpaque *msg = parsed_bmp->message;
+  BmpTlvListResult tlv_result = netgauze_bmp_get_tlvs(msg);
+  if (tlv_result.tag == CResult_CSlice_bmp_log_tlv_____BmpParseError_Err_CSlice_bmp_log_tlv_____BmpParseError) {
+    return;
+  }
 
-    bmp_tlv_hdr_get_type(bth, &bmp_tlv_type);
-    bmp_tlv_hdr_get_len(bth, &bmp_tlv_len);
-    if (bmp_tlv_handle_ebit(&bmp_tlv_type)) {
-      if (!(bmp_tlv_get_pen(bmp_packet, len, &bmp_tlv_len, &pen))) {
-        Log(LOG_INFO, "INFO ( %s/%s ): [%s] [term] packet discarded: failed bmp_tlv_get_pen()\n",
-            config.name, bms->log_str, peer->addr_str);
-        bmp_tlv_list_destroy(tlvs);
-        return;
-      }
-    }
+  CSlice_bmp_log_tlv tlv_slice = tlv_result.ok;
 
-    if (!(bmp_tlv_value = bmp_get_and_check_length(bmp_packet, len, bmp_tlv_len))) {
-      Log(LOG_INFO, "INFO ( %s/%s ): [%s] [term] packet discarded: failed bmp_get_and_check_length() BMP TLV info\n",
-          config.name, bms->log_str, peer->addr_str);
-      bmp_tlv_list_destroy(tlvs);
-      return;
-    }
-
-    ret = bmp_tlv_list_add(tlvs, pen, bmp_tlv_type, bmp_tlv_len, bmp_tlv_value);
-    if (ret == ERR) {
-      Log(LOG_ERR, "ERROR ( %s/%s ): [%s] [term] bmp_tlv_list_add() failed.\n", config.name, bms->log_str,
+  for (struct bmp_log_tlv *tlv = tlv_slice.base_ptr; tlv && tlv < tlv_slice.end_ptr; tlv += 1) {
+    if (bmp_tlv_list_add(tlvs, tlv->pen, tlv->type, tlv->len, tlv->val) == ERR) {
+      Log(LOG_ERR, "ERROR ( %s/%s ): [%s] [init] bmp_tlv_list_add() failed.\n", config.name, bms->log_str,
           peer->addr_str);
       exit_gracefully(1);
     }
@@ -270,6 +253,8 @@ void bmp_process_msg_term(char **bmp_packet, u_int32_t *len, struct bmp_peer *bm
   if (bms->msglog_backend_methods || bms->dump_backend_methods) bgp_peer_log_seq_increment(&bms->log_seq);
 
   if (!pm_listcount(tlvs) || !bms->dump_backend_methods) bmp_tlv_list_destroy(tlvs);
+
+  CSlice_free_bmp_log_tlv(tlv_slice);
 
   /* BGP peers are deleted as part of bmp_peer_close() */
 }
