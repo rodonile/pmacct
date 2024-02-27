@@ -9,7 +9,7 @@ sbin_PROGRAMS =
 bin_PROGRAMS =
 EXTRA_PROGRAMS =
 
-AM_LDFLAGS = @GEOIPV2_LIBS@
+AM_LDFLAGS = @GEOIPV2_LIBS@ @PMACCT_GAUZE_LIBS@
 if WITH_JANSSON
 AM_LDFLAGS += @JANSSON_LIBS@
 endif
@@ -17,7 +17,7 @@ if WITH_AVRO
 AM_LDFLAGS += @AVRO_LIBS@
 endif
 
-AM_CFLAGS = $(PMACCT_CFLAGS)
+AM_CFLAGS = $(PMACCT_CFLAGS) @PMACCT_GAUZE_CFLAGS@
 
 #Build string autogen
 BUILT_SOURCES = pmacct-build.h_h
@@ -71,7 +71,7 @@ libdaemons_la_LIBADD += isis/libpmisis.la
 libdaemons_la_LIBADD += telemetry/libpmtelemetry.la
 libdaemons_la_LIBADD += ebpf/libpmebpf.la
 libdaemons_la_LIBADD += libcommon.la
-libdaemons_la_CFLAGS  = $(AM_CFLAGS)
+libdaemons_la_CFLAGS = $(AM_CFLAGS)
 if WITH_MYSQL
 libdaemons_la_SOURCES += mysql_plugin.c
 libdaemons_la_LIBADD  += @MYSQL_LIBS@

@@ -977,6 +977,17 @@ AC_ARG_ENABLE(unyte-udp-notif,
 )
 dnl finish: unyte udp notif handling
 
+dnl start: pmacct gauze library handling
+PKG_CHECK_MODULES([PMACCT_GAUZE], [pmacct_gauze_lib], [
+  AC_SUBST(PMACCT_GAUZE_CFLAGS)
+  AC_SUBST(PMACCT_GAUZE_LIBS)
+
+  PMACCT_CFLAGS="$PMACCT_CFLAGS $PMACCT_GAUZE_CFLAGS"
+  PMACCT_LIBS="$PMACCT_LIBS -lpmacct_gauze_lib"
+],
+[AC_MSG_ERROR([ERROR: missing pmacct-gauze pkg-config. Refer to: https://github.com/network-analytics/pmacct-gauze])])
+dnl finish: pmacct gauze library handling
+
 dnl start: grpc-collector handling
 AC_MSG_CHECKING(whether to enable grpc-collector support)
 AC_ARG_ENABLE(grpc-collector,
