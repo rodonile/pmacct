@@ -268,6 +268,8 @@ void bmp_bgp_ha_queue_dump_start(void)
 /* Returns TRUE if active, FALSE if stand-by. */
 bool bmp_bgp_ha_redis_check_daemon_state(struct p_redis_host *redis_host)
 { 
+  Log(LOG_INFO, "DEBUG ( %s/%s/ha ) : BMP-BGP-HA: bmp_bgp_ha_redis_check_daemon_state: start!\n", config.name, config.type);
+
   struct p_redis_keys bmp_bgp_ha_redis_keys = {.keys_amount = 0};
   char timestamp_redis[SHORTBUFLEN];
   
@@ -284,7 +286,9 @@ bool bmp_bgp_ha_redis_check_daemon_state(struct p_redis_host *redis_host)
     if ( (strtoll(timestamp_redis, NULL, 0)) < (strtoll(timestamp_local, NULL, 0)) ) return FALSE;    // return FALSE if there is a smaller timestamp
     else if ( (strtoll(timestamp_redis, NULL, 0)) == (strtoll(timestamp_local, NULL, 0)) ) continue;  // current daemon's timestamp
   }
-  
+
+  Log(LOG_INFO, "DEBUG ( %s/%s/ha ) : BMP-BGP-HA: bmp_bgp_ha_redis_check_daemon_state: end with TRUE!\n", config.name, config.type);  
+
   return TRUE;
 }
 
@@ -299,15 +303,21 @@ void updateLocalTimestamp() {
    (instead of default cluster_name, cluster_id, which are used by eBPF) */
 void p_redis_set_string_ha(struct p_redis_host *redis_host, char *resource, char *value)
 {
+  Log(LOG_INFO, "DEBUG ( %s/%s/ha ) : BMP-BGP-HA: p_redis_set_string_ha: start!\n", config.name, config.type);
+
   redis_host->reply = redisCommand(redis_host->ctx, "SETEX %s%s%d%s%s %d %s", config.bgp_bmp_daemon_ha_cluster_name, PM_REDIS_DEFAULT_SEP,
 				   config.bgp_bmp_daemon_ha_cluster_id, PM_REDIS_DEFAULT_SEP, resource, redis_host->exp_time, value);
 
   p_redis_process_reply(redis_host);
+
+  Log(LOG_INFO, "DEBUG ( %s/%s/ha ) : BMP-BGP-HA: p_redis_set_string_ha: end!\n", config.name, config.type);
 }
 
 /* Main loop */
 void p_redis_thread_bmp_bgp_ha_handler(void *rh)
 {
+  Log(LOG_INFO, "DEBUG ( %s/%s/ha ) : BMP-BGP-HA: p_redis_thread_bmp_bgp_ha_handler: start!\n", config.name, config.type);
+
   struct p_redis_host *redis_host = rh;
 
   // Initialize the local timestamp (only at first loop/daemon startup)
@@ -349,6 +359,8 @@ void p_redis_thread_bmp_bgp_ha_handler(void *rh)
   // Update loop variables
   old_bmp_bgp_forwarding = bmp_bgp_forwarding;
   redis_first_loop = FALSE;
+
+  Log(LOG_INFO, "DEBUG ( %s/%s/ha ) : BMP-BGP-HA: p_redis_thread_bmp_bgp_ha_handler: end!\n", config.name, config.type);
 }
 
 

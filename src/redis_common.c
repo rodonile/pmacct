@@ -85,6 +85,8 @@ void p_redis_init(struct p_redis_host *redis_host, char *log_id, redis_thread_ha
 
 int p_redis_connect(struct p_redis_host *redis_host, int fatal)
 {
+  Log(LOG_INFO, "DEBUG ( %s/%s/ha ) : REDIS-COMMON: p_redis_connect: start!\n", config.name, config.type);
+
   assert(redis_host);
 
   if (config.redis_host) {
@@ -96,11 +98,13 @@ int p_redis_connect(struct p_redis_host *redis_host, int fatal)
       redis_host->last_conn = now;
       if (redis_host->ctx) {
         /* reconnect */
-        Log(LOG_DEBUG, "DEBUG ( %s ): reconnecting to redis server (fd %d)\n",
+        Log(LOG_INFO, "DEBUG ( %s ): reconnecting to redis server (fd %d)\n",
             redis_host->log_id, redis_host->ctx->fd);
         res = redisReconnect(redis_host->ctx);
       }
       else {
+        Log(LOG_INFO, "DEBUG ( %s/%s/ha ) : REDIS-COMMON: p_redis_connect: checkpoint-1!\n", config.name, config.type);
+
         /* initial connect */
         struct sockaddr_storage dest;
         socklen_t dest_len = sizeof(dest);
@@ -119,7 +123,11 @@ int p_redis_connect(struct p_redis_host *redis_host, int fatal)
         redis_host->ctx = redisConnect(dest_str, dest_port);
       }
 
+      Log(LOG_INFO, "DEBUG ( %s/%s/ha ) : REDIS-COMMON: p_redis_connect: checkpoint-2!\n", config.name, config.type);
+
+
       if (res != REDIS_OK || redis_host->ctx == NULL || redis_host->ctx->err) {
+        Log(LOG_INFO, "DEBUG ( %s/%s/ha ) : REDIS-COMMON: p_redis_connect: checkpoint-3!\n", config.name, config.type);
 	if (redis_host->ctx) {
 	  if (fatal) {
       Log(LOG_ERR, "ERROR ( %s ): Can't connect to redis server: %s\n", redis_host->log_id, redis_host->ctx->errstr);
@@ -224,6 +232,7 @@ void p_redis_select_db(struct p_redis_host *redis_host)
 
 void p_redis_process_reply(struct p_redis_host *redis_host)
 {
+  Log(LOG_INFO, "DEBUG ( %s/%s/ha ) : REDIS-COMMON: p_redis_process_reply: start!\n", config.name, config.type);
   if (redis_host->reply) {
     if (redis_host->reply->type == REDIS_REPLY_ERROR) {
       Log(LOG_WARNING, "WARN ( %s ): reply='%s'\n", redis_host->log_id, redis_host->reply->str);
@@ -232,8 +241,11 @@ void p_redis_process_reply(struct p_redis_host *redis_host)
     freeReplyObject(redis_host->reply);
   }
   else {
+    Log(LOG_INFO, "DEBUG ( %s/%s/ha ) : REDIS-COMMON: attempting to connect: end!\n", config.name, config.type);
     p_redis_connect(redis_host, FALSE);
   }
+
+  Log(LOG_INFO, "DEBUG ( %s/%s/ha ) : REDIS-COMMON: p_redis_process_reply: end!\n", config.name, config.type);
 }
 
 void p_redis_set_log_id(struct p_redis_host *redis_host, char *log_id)
