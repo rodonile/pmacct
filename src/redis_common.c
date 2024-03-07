@@ -45,7 +45,7 @@ int p_redis_master_produce_thread(void *rh)
   struct p_redis_host *redis_host = rh;
   unsigned int ret = 0, period = 0;
   
-  p_redis_connect(redis_host, TRUE);
+  p_redis_connect(redis_host, FALSE);   // TODO: do we want this as a config argument?? (or no use case for fatal exit of redis??)
 
   for (;;) {
     if (!ret) {
@@ -96,7 +96,8 @@ int p_redis_connect(struct p_redis_host *redis_host, int fatal)
     if (now >= (redis_host->last_conn + PM_REDIS_DEFAULT_CONN_RETRY)) {
       int res = REDIS_OK;
       redis_host->last_conn = now;
-      if (redis_host->ctx) {
+      Log(LOG_INFO, "DEBUG ( %s/%s/ha ) : REDIS-COMMON: reconnecting enter condition!\n", config.name, config.type);
+      if (redis_host->ctx && redis_host->ctx->fd != -1) {
         /* reconnect */
         Log(LOG_INFO, "DEBUG ( %s ): reconnecting to redis server (fd %d)\n",
             redis_host->log_id, redis_host->ctx->fd);
@@ -120,7 +121,19 @@ int p_redis_connect(struct p_redis_host *redis_host, int fatal)
         }
         Log(LOG_INFO, "INFO ( %s ): connecting to redis server %s:%d\n",
             redis_host->log_id, dest_str, dest_port);
-        redis_host->ctx = redisConnect(dest_str, dest_port);
+
+        /* Connect to redis (with connection timeout) */
+        struct timeval redis_conn_timeout = { .tv_sec = PM_REDIS_DEFAULT_CONN_TIMEOUT };
+        Log(LOG_INFO, "DEBUG ( %s/%s/ha ) : REDIS-COMMON: p_redis_connect: timeout-before!\n", config.name, config.type);
+        redis_host->ctx = redisConnectWithTimeout(dest_str, dest_port, redis_conn_timeout);
+        Log(LOG_INFO, "DEBUG ( %s/%s/ha ) : REDIS-COMMON: p_redis_connect: timeout-after!\n", config.name, config.type);
+        //redis_host->ctx = redisConnect(dest_str, dest_port);
+
+        /* Set redis command timeout (as we are in blocking context) */
+        struct timeval redis_command_timeout = { .tv_sec = PM_REDIS_DEFAULT_COMMAND_TIMEOUT };
+        redisSetTimeout(redis_host->ctx, redis_command_timeout);
+
+        Log(LOG_INFO, "DEBUG ( %s ): REDIS-COMMON: connected to redis server (fd %d)\n", redis_host->log_id, redis_host->ctx->fd);
       }
 
       Log(LOG_INFO, "DEBUG ( %s/%s/ha ) : REDIS-COMMON: p_redis_connect: checkpoint-2!\n", config.name, config.type);
