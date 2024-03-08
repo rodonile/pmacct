@@ -941,7 +941,7 @@ dnl finish: nDPI handling
 dnl start: unyte udp notif handling
 AC_MSG_CHECKING(whether to enable Unyte UDP-Notif support)
 AC_ARG_ENABLE(unyte-udp-notif,
-  [  --enable-unyte-udp-notif         Enable Unyte UDP Notif support (default: no)],
+  [  --enable-unyte-udp-notif           Enable Unyte UDP Notif support (default: no)],
   [ case "$enableval" in
   yes)
     AC_MSG_RESULT(yes)
@@ -978,14 +978,29 @@ AC_ARG_ENABLE(unyte-udp-notif,
 dnl finish: unyte udp notif handling
 
 dnl start: pmacct gauze library handling
-PKG_CHECK_MODULES([PMACCT_GAUZE], [pmacct_gauze_lib], [
-  AC_SUBST(PMACCT_GAUZE_CFLAGS)
-  AC_SUBST(PMACCT_GAUZE_LIBS)
+AC_MSG_CHECKING(whether to use pmacct-gauze)
+AC_ARG_ENABLE(pmacct-gauze,
+  [  --enable-pmacct-gauze          Enable pmacct-gauze support (default: no)],
+  [ case "$enableval" in
+  yes)
+    AC_MSG_RESULT(yes)
+    PKG_CHECK_MODULES([PMACCT_GAUZE], [pmacct_gauze_lib], [
+      AC_SUBST(PMACCT_GAUZE_CFLAGS)
+      AC_SUBST(PMACCT_GAUZE_LIBS)
 
-  PMACCT_CFLAGS="$PMACCT_CFLAGS $PMACCT_GAUZE_CFLAGS"
-  PMACCT_LIBS="$PMACCT_LIBS -lpmacct_gauze_lib"
-],
-[AC_MSG_ERROR([ERROR: missing pmacct-gauze pkg-config. Refer to: https://github.com/network-analytics/pmacct-gauze])])
+      PMACCT_CFLAGS="$PMACCT_CFLAGS $PMACCT_GAUZE_CFLAGS"
+      PMACCT_LIBS="$PMACCT_LIBS $PMACCT_GAUZE_LIBS"
+    ],
+    [AC_MSG_ERROR([ERROR: missing pmacct-gauze pkg-config. Refer to: https://github.com/network-analytics/pmacct-gauze])])
+;;
+  no)
+    AC_MSG_RESULT(no)
+    ;;
+  esac ],
+  [
+    AC_MSG_RESULT(no)
+  ]
+)
 dnl finish: pmacct gauze library handling
 
 dnl start: grpc-collector handling
