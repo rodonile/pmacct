@@ -660,29 +660,33 @@ void bmp_process_msg_route_monitor(char **bmp_packet, u_int32_t *len, struct bmp
 
   ParsedBgpUpdate bgp_parsed = bgp_result.ok;
 
-  for (int i = 0; i < bgp_parsed.packets.len; i += 1) {
-    ProcessPacket *pkt = &bgp_parsed.packets.base_ptr[i];
+  static int bmp_packet_count = 0;
+  static int bgp_packet_count = 0;
 
+  bmp_packet_count++;
+  // Log(LOG_INFO, "bmp packet count %d\n", bmp_packet_count);
+
+  ProcessPacket *pkt = NULL;
+  for (int i = 0; i < bgp_parsed.packets.len; i += 1) {
+    pkt = &bgp_parsed.packets.base_ptr[i];
+
+    bgp_packet_count++;
+    // Log(LOG_INFO, "bgp packet count %d\n", bgp_packet_count);
+
+    // TODO missing EoR
     if (pkt->update_type == BGP_NLRI_UPDATE) {
       bgp_process_update(&bmd, &pkt->prefix, &pkt->attr, &pkt->attr_extra, pkt->afi, pkt->safi, i);
     } else {
       bgp_process_withdraw(&bmd, &pkt->prefix, &pkt->attr, &pkt->attr_extra, pkt->afi, pkt->safi, i);
-
-      // We will not use the parsed e/l/community + aspath, so we free it once
-          if (bgp_parsed.update_count == 0 && i == bgp_parsed.packets.len - 1) {
-            if (pkt->attr.aspath)
-              aspath_free(pkt->attr.aspath);
-
-            if (pkt->attr.community)
-              community_free(pkt->attr.community);
-
-            if (pkt->attr.lcommunity)
-              lcommunity_free(pkt->attr.lcommunity);
-
-            if (pkt->attr.ecommunity)
-              ecommunity_free(pkt->attr.ecommunity);
-          }
     }
+  }
+
+  // Unintern all temporary structures
+  if (pkt) {
+    if (pkt->attr.community) community_unintern(peer, pkt->attr.community);
+    if (pkt->attr.lcommunity) lcommunity_unintern(peer, pkt->attr.lcommunity);
+    if (pkt->attr.ecommunity) ecommunity_unintern(peer, pkt->attr.ecommunity);
+    if (pkt->attr.aspath) aspath_unintern(peer, pkt->attr.aspath);
   }
 
   CSlice_free_ProcessPacket(bgp_parsed.packets);
