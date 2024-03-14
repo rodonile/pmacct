@@ -674,10 +674,26 @@ void bmp_process_msg_route_monitor(char **bmp_packet, u_int32_t *len, struct bmp
     // Log(LOG_INFO, "bgp packet count %d\n", bgp_packet_count);
 
     // TODO missing EoR
-    if (pkt->update_type == BGP_NLRI_UPDATE) {
-      bgp_process_update(&bmd, &pkt->prefix, &pkt->attr, &pkt->attr_extra, pkt->afi, pkt->safi, i);
-    } else {
-      bgp_process_withdraw(&bmd, &pkt->prefix, &pkt->attr, &pkt->attr_extra, pkt->afi, pkt->safi, i);
+    switch (pkt->update_type) {
+      case BGP_NLRI_UPDATE:
+        bgp_process_update(&bmd, &pkt->prefix, &pkt->attr, &pkt->attr_extra, pkt->afi, pkt->safi, i);
+        break;
+      case BGP_NLRI_WITHDRAW:
+        bgp_process_withdraw(&bmd, &pkt->prefix, &pkt->attr, &pkt->attr_extra, pkt->afi, pkt->safi, i);
+        break;
+      case BGP_NLRI_UNDEFINED: {
+        // this is EoR
+        struct bgp_info ri = { 0 };
+        ri.bmed = bmd.extra;
+        ri.peer = bmd.peer;
+        bgp_peer_log_msg(NULL, &ri, pkt->afi, pkt->safi, bms->tag, "log", bms->msglog_output, NULL, BGP_LOG_TYPE_EOR);
+        break;
+      }
+      default: {
+        Log(LOG_INFO,
+            "INFO ( %s/%s ): [%s] [route monitor] packet discarded: unknown update type received from pmacct-gauze\n",
+            config.name, bms->log_str, peer->addr_str);
+      }
     }
   }
 
