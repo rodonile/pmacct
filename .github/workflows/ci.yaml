@@ -386,6 +386,7 @@ jobs:
         with:
           repository: network-analytics/pmacct-test-automation
           path: pmacct-test-automation
+          ref: bmp-init-peer-up-new-fields
           submodules: recursive
 
       - name: Create Traffic Reproducer Docker Images
@@ -421,6 +422,7 @@ jobs:
         with:
           repository: network-analytics/pmacct-test-automation
           path: pmacct-test-automation
+          ref: bmp-init-peer-up-new-fields
           submodules: recursive
 
       - name: Download images and prepare artifacts
@@ -456,6 +458,7 @@ jobs:
         with:
           repository: network-analytics/pmacct-test-automation
           path: pmacct-test-automation
+          ref: bmp-init-peer-up-new-fields
           submodules: recursive
       
       - name: Collect list of tests from tests/ folder
@@ -483,6 +486,7 @@ jobs:
         with:
           repository: network-analytics/pmacct-test-automation
           path: pmacct-test-automation
+          ref: bmp-init-peer-up-new-fields
           submodules: recursive
 
       - name: Set up Python 3.10
