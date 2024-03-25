@@ -387,22 +387,23 @@ jobs:
           repository: network-analytics/pmacct-test-automation
           path: pmacct-test-automation
           submodules: recursive
+          ref: ee48dd5aa58af7b70a26ce27016a54de9492d92e
 
       - name: Create Traffic Reproducer Docker Images
         run: |
           sudo apt update
           sudo apt install docker
           cd pmacct-test-automation
-          tools/pcap_player/build_docker_image.sh
+          tools/pcap_player/build_docker_images.sh
 
       - name: Check Images and Save as Artifacts
         run: |
           echo "Checking Images..."
-          docker images | grep _build
+          docker images | grep local
           echo
           echo "Saving images as artifacts..."
           mkdir -p /tmp/docker/
-          docker save -o /tmp/docker/traffic_reproducer_docker_images.tar traffic-reproducer:_build
+          docker save -o /tmp/docker/traffic_reproducer_docker_images.tar traffic-reproducer:local traffic-reproducer-multi:local
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
@@ -422,6 +423,7 @@ jobs:
           repository: network-analytics/pmacct-test-automation
           path: pmacct-test-automation
           submodules: recursive
+          ref: ee48dd5aa58af7b70a26ce27016a54de9492d92e
 
       - name: Download images and prepare artifacts
         run: |
@@ -457,6 +459,7 @@ jobs:
           repository: network-analytics/pmacct-test-automation
           path: pmacct-test-automation
           submodules: recursive
+          ref: ee48dd5aa58af7b70a26ce27016a54de9492d92e
       
       - name: Collect list of tests from tests/ folder
         id: set-matrix
@@ -484,6 +487,7 @@ jobs:
           repository: network-analytics/pmacct-test-automation
           path: pmacct-test-automation
           submodules: recursive
+          ref: ee48dd5aa58af7b70a26ce27016a54de9492d92e
 
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
@@ -530,8 +534,11 @@ jobs:
           docker load -i /tmp/docker/pmacct_docker_images/pmacct_docker_images.tar
           docker load -i /tmp/docker/traffic_reproducer_docker_images/traffic_reproducer_docker_images.tar
           docker load -i /tmp/docker/hub_pulled_docker_images/hub_pulled_docker_images.tar
+          docker image tag nfacctd:_build nfacctd:local
+          docker image tag pmbmpd:_build pmbmpd:local
+          docker image tag pmbgpd:_build pmbgpd:local
           echo "List Images"
-          docker images | grep 'confluentinc\|redis\|traffic\|_build'
+          docker images | grep 'confluentinc\|redis\|traffic\|local'
 
       - name: Run the test(s)
         if: ${{ success() && env.SKIP == 'false' }}
