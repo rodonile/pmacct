@@ -32,7 +32,26 @@
 #include "kafka_common.h"
 #endif
 
+#ifndef PMACCT_GAUZE_BUILD
+
+static BmpParsingContext *bmp_parsing_context = NULL;
+
+BmpParsingContext *bmp_parsing_context_get() {
+
+  if (!bmp_parsing_context)
+    bmp_parsing_context = netgauze_make_BmpParsingContext();
+
+  return bmp_parsing_context;
+}
+
+void bmp_parsing_context_clear() {
+  if (bmp_parsing_context)
+    netgauze_free_BmpParsingContext(bmp_parsing_context);
+}
+#endif
+
 u_int32_t bmp_process_packet(char *bmp_packet, u_int32_t len, struct bmp_peer *bmpp, int *do_term) {
+
   struct bgp_misc_structs *bms;
   struct bgp_peer *peer;
   char *bmp_packet_ptr = bmp_packet;
@@ -49,7 +68,7 @@ u_int32_t bmp_process_packet(char *bmp_packet, u_int32_t len, struct bmp_peer *b
   if (!bms) return FALSE;
 
   for (msg_start_len = pkt_remaining_len = len; pkt_remaining_len; msg_start_len = pkt_remaining_len) {
-    BmpParseResult parse_result = netgauze_bmp_parse_packet(bmp_packet_ptr, pkt_remaining_len);
+    BmpParseResult parse_result = netgauze_bmp_parse_packet_with_context(bmp_packet_ptr, pkt_remaining_len, bmp_parsing_context_get());
 
     if (parse_result.tag == CResult_Err) {
       Log(LOG_INFO, "INFO ( %s/%s ): [%s] packet discarded: %s\n", config.name, bms->log_str, peer->addr_str,
@@ -251,6 +270,7 @@ void bmp_process_msg_term(char **bmp_packet, u_int32_t *len, struct bmp_peer *bm
   CSlice_free_bmp_log_tlv(tlv_slice);
 
   /* BGP peers are deleted as part of bmp_peer_close() */
+  bmp_parsing_context_clear();
 }
 
 static void dump_bytes(void* ptr, size_t len) {
@@ -366,7 +386,7 @@ bmp_process_msg_peer_up(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp
 
   BmpTlvListResult tlv_result = netgauze_bmp_get_tlvs(netgauze_parsed->message);
   if (tlv_result.tag == CResult_Err) {
-    Log(LOG_INFO, "INFO ( %s/%s ): [%s] [peer up] netgauze could not get bmp peer up header\n",
+    Log(LOG_INFO, "INFO ( %s/%s ): [%s] [peer up] netgauze could not get bmp peer up tlvs\n",
         config.name, bms->log_str, peer->addr_str);
     return;
   }
@@ -451,11 +471,10 @@ void bmp_process_msg_peer_down(char **bmp_packet, u_int32_t *len, struct bmp_pee
   struct bmp_log_peer_down blpd = peer_down_result.ok;
 
   /* TLV vars */
-  // TODO handle when netgauze supports bmpv4
   struct pm_list *tlvs = NULL;
   /* draft-ietf-grow-bmp-tlv */
   if (peer->version == BMP_V4) {
-
+    // TODO handle when netgauze supports bmpv4
   }
 
   if (blpd.reason == BMP_PEER_DOWN_LOC_CODE) bmp_peer_down_hdr_get_loc_code(bmp_packet, len, &blpd.loc_code);
@@ -479,6 +498,8 @@ void bmp_process_msg_peer_down(char **bmp_packet, u_int32_t *len, struct bmp_pee
   } else if (bdata.family == AF_INET6) {
     ret = pm_tfind(&bdata, &bmpp->bgp_peers_v6, bgp_peer_host_addr_peer_dist_cmp);
   }
+
+  netgauze_bmp_parsing_context_delete(bmp_parsing_context_get(), parsed_bmp->message);
 
   if (ret) {
     bmpp_bgp_peer = (*(struct bgp_peer **) ret);
