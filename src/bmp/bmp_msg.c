@@ -33,7 +33,6 @@
 #endif
 
 #ifndef PMACCT_GAUZE_BUILD
-
 static BmpParsingContext *bmp_parsing_context = NULL;
 
 BmpParsingContext *bmp_parsing_context_get() {
@@ -171,8 +170,7 @@ void bmp_process_msg_init(struct bmp_peer *bmpp, ParsedBmp *parsed_bmp) {
   tlvs = bmp_tlv_list_new(NULL, bmp_tlv_list_node_del);
   if (!tlvs) return;
 
-  BmpMessageValueOpaque *msg = parsed_bmp->message;
-  BmpTlvListResult tlv_result = netgauze_bmp_get_tlvs(msg);
+  BmpTlvListResult tlv_result = netgauze_bmp_get_tlvs(parsed_bmp->message);
   if (tlv_result.tag == CResult_Err) {
     return;
   }
@@ -238,8 +236,7 @@ void bmp_process_msg_term(char **bmp_packet, u_int32_t *len, struct bmp_peer *bm
   tlvs = bmp_tlv_list_new(NULL, bmp_tlv_list_node_del);
   if (!tlvs) return;
 
-  BmpMessageValueOpaque *msg = parsed_bmp->message;
-  BmpTlvListResult tlv_result = netgauze_bmp_get_tlvs(msg);
+  BmpTlvListResult tlv_result = netgauze_bmp_get_tlvs(parsed_bmp->message);
   if (tlv_result.tag == CResult_Err) {
     return;
   }
