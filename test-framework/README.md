@@ -86,7 +86,7 @@ Examples:
 
 Example (run test case 300 [default scenario] with python without the ./runtest.sh wrapper):
 ```shell
-python3 -m pytest tests/300* --runconfig=300:00 --log-cli-level=DEBUG --log-file=results/pytestlog.log --html=results/report.html
+python3 -m pytest tests/300* --runconfig=300:00 -c=pytest.ini --log-cli-level=DEBUG --log-file=results/pytestlog.log --html=results/report.html
 ```
 
 In exceptional situations, e.g. when setup or teardown fails or is stopped, there may be some remaining components left running.
