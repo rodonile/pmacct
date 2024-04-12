@@ -376,23 +376,22 @@ jobs:
             fi
           fi
 
-  ### Step 5: Regression Testing (powered by https://github.com/network-analytics/pmacct-test-automation)
-  ### Build Traffic Reproducer Images
+  ### Step 5: Regression Testing
+  ### Step 5.1: Build Traffic Reproducer Images
   traf-repro-docker:
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout Framework
+      - name: Checkout pmacct
         uses: actions/checkout@v4
         with:
-          repository: network-analytics/pmacct-test-automation
-          path: pmacct-test-automation
+          path: pmacct
           submodules: recursive
 
       - name: Create Traffic Reproducer Docker Images
         run: |
           sudo apt update
           sudo apt install docker
-          cd pmacct-test-automation
+          cd pmacct/test-framework
           tools/pcap_player/build_docker_image.sh
 
       - name: Check Images and Save as Artifacts
@@ -411,21 +410,19 @@ jobs:
           name: traffic_reproducer_docker_images
           path: /tmp/docker
   
-  ### Retrieve all other necessary images from Docker Hub and store as artifacts
-  ### (to avoid possible Docker Hub pull limits)
+  ### Step 5.2: Retrieve all other necessary images from Docker Hub and store as artifacts
+  ###           (to avoid possible Docker Hub pull limits)
   hub-pulled-docker:
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout Framework
+      - name: Checkout pmacct
         uses: actions/checkout@v4
         with:
-          repository: network-analytics/pmacct-test-automation
-          path: pmacct-test-automation
-          submodules: recursive
+          path: pmacct
 
       - name: Download images and prepare artifacts
         run: |
-          cd pmacct-test-automation
+          cd pmacct/test-framework
           source settings.conf
           docker image pull $ZOOKEEPER_IMG
           docker image pull $KAFKA_IMG
@@ -445,29 +442,27 @@ jobs:
           name: hub_pulled_docker_images
           path: /tmp/docker
 
-  ### Collect tests from framework
+  ### Step 5.3: Collect tests from framework
   collect-tests:
     runs-on: ubuntu-22.04
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - name: Checkout Framework
+      - name: Checkout pmacct
         uses: actions/checkout@v4
         with:
-          repository: network-analytics/pmacct-test-automation
-          path: pmacct-test-automation
-          submodules: recursive
+          path: pmacct
       
       - name: Collect list of tests from tests/ folder
         id: set-matrix
         run: |
-          cd pmacct-test-automation/tests
+          cd pmacct/tests
           MATRIX="{"test": $(find . -mindepth 1 -maxdepth 1 -type d | cut -c 3- | cut -c 1-3 | sort | jq -R -s -c 'split("\n")[:-1]')}"
           echo "matrix=${MATRIX}" >> $GITHUB_OUTPUT
           echo "Collected tests:"
           echo $MATRIX
 
-  ### Setup Framework and Run Tests
+  ### Step 5.4: Setup Framework and Run Tests
   pytest-runtests:
     needs: [collect-tests, pmacct-docker, traf-repro-docker, hub-pulled-docker]
     runs-on: ubuntu-22.04
@@ -478,11 +473,10 @@ jobs:
       matrix: ${{ fromJson(needs.collect-tests.outputs.matrix) }}
 
     steps:
-      - name: Checkout Framework
+      - name: Checkout pmacct
         uses: actions/checkout@v4
         with:
-          repository: network-analytics/pmacct-test-automation
-          path: pmacct-test-automation
+          path: pmacct
           submodules: recursive
 
       - name: Set up Python 3.10
@@ -495,7 +489,7 @@ jobs:
           sudo apt update
           sudo apt install librdkafka-dev docker
           pip install --upgrade pip
-          pip install -r pmacct-test-automation/requirements.txt
+          pip install -r pmacct/test-framework/requirements.txt
 
       - name: Dry-run to check collected tests
         if: ${{ success() && inputs.marker != '' }}             
@@ -513,7 +507,7 @@ jobs:
             fi
           }
           trap intercept_pytest_no_tests_collected EXIT
-          cd pmacct-test-automation
+          cd pmacct/test-framework
           sudo env PATH="$PATH" ./runtest.sh --dry ${{ matrix.test }} --mark="$MARKER"
           trap - EXIT
 
@@ -537,9 +531,9 @@ jobs:
         if: ${{ success() && env.SKIP == 'false' }}
         env:
           DEFAULT_ONLY: ${{ inputs.default_only }}
-          MARKER: ${{ inputs.marker }}                # TODO: remove this if we decide that we run the single tests only (don't need this as was checked above...) --> then also adapt the if-else below...
+          MARKER: ${{ inputs.marker }}
         run: |
-          cd pmacct-test-automation
+          cd pmacct/test-framework
           if [[ "$DEFAULT_ONLY" == "true" ]]; then
             if [[ "$MARKER" == "" ]]; then
               sudo env PATH="$PATH" ./runtest.sh ${{ matrix.test }}:00
@@ -557,7 +551,7 @@ jobs:
       - name: Prepare Results Folder for Upload (permissions and folder name)
         if: ${{ !cancelled() && env.SKIP == 'false' }}    # always run this step, unless job manually cancelled or we are skipping the test
         run: |
-          cd pmacct-test-automation
+          cd pmacct/test-framework
           sudo chown -R 1000:1000 results/
           sudo chmod -R 777 results/
           echo "Adjust results folder name (when : or * is used as part of ./runtest.sh argument...)"
@@ -571,9 +565,9 @@ jobs:
         with:
           retention-days: 7
           name: "test_results_${{ env.TEST_FOLDER_NAME }}"
-          path: pmacct-test-automation/results
+          path: pmacct/test-framework/results
 
-  # Expose Results as Artifacts
+  # Step 5.5: Expose Results as Artifacts
   pytest-results:
     if: '!cancelled()'                                # always run this job, unless job manually cancelled
     needs: pytest-runtests
@@ -671,7 +665,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo
 
-  # Deploy HTML report with github pages
+  # Step 5.6: Deploy HTML report with github pages
   pytest-html-report-deploy:                          
     if: ${{ !cancelled() && github.ref == 'refs/heads/master' }}    # We can only deploy pages from master (security reasons)
     needs: pytest-results
