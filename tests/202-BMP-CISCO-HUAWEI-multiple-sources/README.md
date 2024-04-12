@@ -33,7 +33,7 @@ Testing with BMP traffic from 3 different source IPs.
 
 t=0s --> the first full minute after starting the traffic generator
 
-- t=5-6s: BMP packets sent 
+- t=5-13s: BMP packets sent 
 
 ### Test execution and results:
 

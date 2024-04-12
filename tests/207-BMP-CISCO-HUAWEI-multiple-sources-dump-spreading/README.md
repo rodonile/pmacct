@@ -35,5 +35,5 @@ The goal of this test is to validate functionality of the table dump also with t
 
 t=0s --> the first full minute after starting the traffic generator
 
-- t=5-6s: BMP packets sent 
+- t=5-13s: BMP packets sent 
 - t=60s: BMP dump starting (for default scenario)
