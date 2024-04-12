@@ -20,7 +20,7 @@ def test(test_core, consumer_setup_teardown):
 def main(consumers):
     th = KTestHelper(testParams, consumers)
 
-    # Ensure traffic-reproducers are not started too in the interval mm:55-mm+1:25
+    # Ensure traffic-reproducers are not started in the interval mm:55-mm+1:25
     test_tools.avoid_time_period_in_seconds(25, 30)
 
     for suffix in ['a', 'b', 'cd']:

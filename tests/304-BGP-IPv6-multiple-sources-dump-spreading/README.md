@@ -35,4 +35,4 @@ The goal of this test is to validate functionality of the table dump also with t
 t=0s --> the first full minute after starting the traffic generator
 
 pcaps file time duration: 
-- t=1-2s: BGP packets sent (from reproducers 00-02)
+- t=5-7s: BGP packets sent (from reproducers 00-02)
