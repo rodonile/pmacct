@@ -27,18 +27,9 @@ All the components (kafka stack, pmacct daemon, and traffic reproducer) are depl
 
 ## 1 - How To Install
 
-Clone the repository (need to recurse to initialize and update submodules):
-```shell
-git clone https://github.com/network-analytics/pmacct-test-automation.git --recurse-submodules
-```
-
-Update the repository (need to recurse to update submodules):
-```shell
-git pull --recurse-submodules
-```
-
 Create and activate Python virtual envirinment:
 ```shell
+cd test-framework
 python -m venv venv
 source ./venv/bin/activate
 ```
@@ -59,6 +50,8 @@ tools/pmacct_build/build_docker_images.sh
 ```
 
 ## 2 - How To Run
+
+In order to run the tests locally you need to be in the 'test-framework' folder (which is the pytest root folder).
 
 To run one or more test cases:
 ```shell
