@@ -1048,6 +1048,7 @@ int skinny_bmp_daemon()
     }
   }
 
+  bmp_parsing_context_clear();
   return SUCCESS;
 }
 

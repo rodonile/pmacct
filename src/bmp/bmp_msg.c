@@ -33,19 +33,19 @@
 #endif
 
 #ifndef PMACCT_GAUZE_BUILD
-static BmpParsingContext *bmp_parsing_context = NULL;
+static Opaque_BmpParsingContext *bmp_parsing_context = NULL;
 
-BmpParsingContext *bmp_parsing_context_get() {
+Opaque_BmpParsingContext *bmp_parsing_context_get() {
 
   if (!bmp_parsing_context)
-    bmp_parsing_context = netgauze_make_BmpParsingContext();
+    bmp_parsing_context = netgauze_make_Opaque_BmpParsingContext();
 
   return bmp_parsing_context;
 }
 
 void bmp_parsing_context_clear() {
   if (bmp_parsing_context)
-    netgauze_free_BmpParsingContext(bmp_parsing_context);
+    netgauze_free_Opaque_BmpParsingContext(bmp_parsing_context);
 }
 #endif
 
@@ -267,7 +267,6 @@ void bmp_process_msg_term(char **bmp_packet, u_int32_t *len, struct bmp_peer *bm
   CSlice_free_bmp_log_tlv(tlv_slice);
 
   /* BGP peers are deleted as part of bmp_peer_close() */
-  bmp_parsing_context_clear();
 }
 
 static void dump_bytes(void* ptr, size_t len) {
