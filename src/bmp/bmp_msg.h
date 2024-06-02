@@ -38,8 +38,9 @@ extern void bmp_process_msg_stats(char **, u_int32_t *, struct bmp_peer *, const
 extern void bmp_process_msg_route_monitor(char **, u_int32_t *, struct bmp_peer *, const ParsedBmp *);
 extern void bmp_process_msg_route_mirror(char **, u_int32_t *, struct bmp_peer *);
 
-extern Opaque_BmpParsingContext *bmp_parsing_context_get();
-extern void bmp_parsing_context_clear();
+extern Opaque_BmpParsingContext *bmp_parsing_context_get(struct bmp_peer *bmp_peer);
+extern Opaque_ContextCache *bmp_context_cache_get();
+extern void bmp_parsing_context_clear(struct bmp_peer *bmp_peer);
 #endif
 
 extern void bmp_common_hdr_get_len(struct bmp_common_hdr *, u_int32_t *);

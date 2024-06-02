@@ -282,6 +282,9 @@ int bmp_peer_init(struct bmp_peer *bmpp, int type)
   ret = bgp_peer_init(&bmpp->self, type, BGP_BUFFER_SIZE);
   log_notification_init(&bmpp->missing_peer_up);
 
+  Opaque_BmpParsingContext *bpc = bmp_parsing_context_get(bmpp);
+  Log(LOG_INFO, "BMP PARSING CONTEXT MAKE %p\n", bpc);
+
   return ret;
 }
 
@@ -296,6 +299,8 @@ void bmp_peer_close(struct bmp_peer *bmpp, int type)
   bms = bgp_select_misc_db(peer->type);
 
   if (!bms) return;
+
+  bmp_parsing_context_clear(bmpp);
 
   pm_twalk(bmpp->bgp_peers_v4, bgp_peers_bintree_walk_delete, NULL);
   pm_twalk(bmpp->bgp_peers_v6, bgp_peers_bintree_walk_delete, NULL);

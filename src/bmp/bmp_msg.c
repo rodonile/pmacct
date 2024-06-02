@@ -33,19 +33,26 @@
 #endif
 
 #ifndef PMACCT_GAUZE_BUILD
-static Opaque_BmpParsingContext *bmp_parsing_context = NULL;
+static Opaque_ContextCache *bmp_context_cache = NULL;
 
-Opaque_BmpParsingContext *bmp_parsing_context_get() {
+extern Opaque_ContextCache *bmp_context_cache_get() {
+  if (!bmp_context_cache)
+    bmp_context_cache = netgauze_make_Opaque_ContextCache();
 
-  if (!bmp_parsing_context)
-    bmp_parsing_context = netgauze_make_Opaque_BmpParsingContext();
-
-  return bmp_parsing_context;
+  return bmp_context_cache;
 }
 
-void bmp_parsing_context_clear() {
-  if (bmp_parsing_context)
-    netgauze_free_Opaque_BmpParsingContext(bmp_parsing_context);
+Opaque_BmpParsingContext *bmp_parsing_context_get(struct bmp_peer *bmp_peer) {
+  Opaque_ContextCache *context_cache = bmp_context_cache_get();
+  Opaque_BmpParsingContext *ctx = netgauze_context_cache_get(context_cache, bmp_peer);
+  if (ctx) return ctx;
+
+  return netgauze_context_cache_set(context_cache, bmp_peer, netgauze_make_Opaque_BmpParsingContext());
+}
+
+void bmp_parsing_context_clear(struct bmp_peer *bmp_peer) {
+  if (bmp_context_cache)
+    netgauze_context_cache_delete(bmp_context_cache, bmp_peer);
 }
 #endif
 
@@ -67,7 +74,8 @@ u_int32_t bmp_process_packet(char *bmp_packet, u_int32_t len, struct bmp_peer *b
   if (!bms) return FALSE;
 
   for (msg_start_len = pkt_remaining_len = len; pkt_remaining_len; msg_start_len = pkt_remaining_len) {
-    BmpParseResult parse_result = netgauze_bmp_parse_packet_with_context(bmp_packet_ptr, pkt_remaining_len, bmp_parsing_context_get());
+    BmpParseResult parse_result = netgauze_bmp_parse_packet_with_context(bmp_packet_ptr, pkt_remaining_len,
+                                                                         bmp_parsing_context_get(bmpp));
 
     if (parse_result.tag == CResult_Err) {
       Log(LOG_INFO, "INFO ( %s/%s ): [%s] packet discarded: %s\n", config.name, bms->log_str, peer->addr_str,
@@ -494,8 +502,6 @@ void bmp_process_msg_peer_down(char **bmp_packet, u_int32_t *len, struct bmp_pee
   } else if (bdata.family == AF_INET6) {
     ret = pm_tfind(&bdata, &bmpp->bgp_peers_v6, bgp_peer_host_addr_peer_dist_cmp);
   }
-
-  netgauze_bmp_parsing_context_delete(bmp_parsing_context_get(), parsed_bmp->message);
 
   if (ret) {
     bmpp_bgp_peer = (*(struct bgp_peer **) ret);
