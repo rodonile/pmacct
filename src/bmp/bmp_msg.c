@@ -642,22 +642,44 @@ void bmp_process_msg_peer_down(char **bmp_packet, u_int32_t *len, struct bmp_pee
 
   if (bdata.family == AF_INET) {
     ret = pm_tfind(&bdata.peer_ip, &bmpp->bgp_peers_v4, bgp_peer_host_addr_cmp);
+
+    char id_str[INET6_ADDRSTRLEN];
+    memset(id_str, 0, INET6_ADDRSTRLEN);
+    addr_to_str2(id_str, &bdata.bgp_id, AF_INET);    
+    Log(LOG_INFO, "INFO ( %s/%s ): [%s] Processing the peer down message (BGP ID = %s)...\n", config.name, bms->log_str, peer->addr_str, id_str);
   }
   else if (bdata.family == AF_INET6) {
     ret = pm_tfind(&bdata.peer_ip, &bmpp->bgp_peers_v6, bgp_peer_host_addr_cmp);
+
+    char id_str[INET6_ADDRSTRLEN];
+    memset(id_str, 0, INET6_ADDRSTRLEN);
+    addr_to_str2(id_str, &bdata.bgp_id, AF_INET);  
+    Log(LOG_INFO, "INFO ( %s/%s ): [%s] Processing the peer down message (BGP ID = %s)...\n", config.name, bms->log_str, peer->addr_str, id_str);
   }
 
   if (ret) {
-    bmpp_bgp_peer = (*(struct bgp_peer **) ret);
+    bmpp_bgp_peer = (*(struct bgp_peer **) ret);  // This gets us the local rib (considered as one peer with BGP_ID=0, however multiple peers are there -> but pmacct only has concept of bmp peer having multiple bgp peers by ip addr only)
 
-    bgp_peer_info_delete(bmpp_bgp_peer);
+    // QUESTION: what does pmacct do when receiving multiple peer up with same peer_ip address (i.e. 0.0.0.0 for loc rib) then??
+    // ---> try to understand if it's possible to create new peers and changing/adding a new compare function (instead of bgp_peer_host_addr_cmp) to retrieve the peers??
+    // ---> also we need to understand a bit better the difference between rd instance peer and the other ones
+    //      can it be used alongside local rib? or only with adj rib in /out?
 
-    if (bdata.family == AF_INET) {
-      pm_tdelete(&bdata.peer_ip, &bmpp->bgp_peers_v4, bgp_peer_host_addr_cmp);
-    }
-    else if (bdata.family == AF_INET6) {
-      pm_tdelete(&bdata.peer_ip, &bmpp->bgp_peers_v6, bgp_peer_host_addr_cmp);
-    }
+
+    char rd_str[SHORTSHORTBUFLEN];
+    bgp_rd2str(rd_str, &bdata.chars.rd);
+    Log(LOG_INFO, "INFO ( %s/%s ): [%s] Triggering deletion of routes for the peer with RD=%s...\n", config.name, bms->log_str, peer->addr_str, rd_str);
+
+    // bgp_peer_info_delete(bmpp_bgp_peer);
+    bgp_peer_info_delete_bmp(bmpp_bgp_peer, &bdata);  // here also give the bmp per-peer header information along with to know from which BGP peer we got the peer down!
+
+    // Check what this here does?? (likely removing the tree??) --> but then how does correlation still work??
+    // if (bdata.family == AF_INET) {
+    //   pm_tdelete(&bdata.peer_ip, &bmpp->bgp_peers_v4, bgp_peer_host_addr_cmp);
+    // }
+    // else if (bdata.family == AF_INET6) {
+    //   pm_tdelete(&bdata.peer_ip, &bmpp->bgp_peers_v6, bgp_peer_host_addr_cmp);
+    // }
   }
   /* missing BMP peer up message, ie. case of replay/replication of BMP messages */
   else {

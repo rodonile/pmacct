@@ -133,6 +133,17 @@ void bgp_peer_log_msg_extras_bmp(struct bgp_peer *peer, int etype, int log_type,
     pm_avro_check(avro_value_set_branch(&p_avro_field, TRUE, &p_avro_branch));
     pm_avro_check(avro_value_set_int(&p_avro_branch, peer->tcp_port));
 
+
+    // TEMP: debug
+    char id_str[INET6_ADDRSTRLEN];
+    memset(id_str, 0, INET6_ADDRSTRLEN);
+    addr_to_str2(id_str, &peer->id, AF_INET);
+    if (log_type == BGP_LOG_TYPE_DELETE) {
+        Log(LOG_INFO, "INFO ( %s/%s ): [BGP_ID=%s]     deleting route              {peer_ip=%s} \n",
+                config.name, bms->log_str, id_str, ip_address);
+    }
+
+
     if (log_type == BGP_LOG_TYPE_DELETE) {
       pm_avro_check(avro_value_get_by_name(obj, "bmp_msg_type", &p_avro_field, NULL));
       pm_avro_check(avro_value_set_string(&p_avro_field, "internal"));
@@ -488,6 +499,12 @@ void bgp_extra_data_print_bmp(struct bgp_msg_extra_data *bmed, int output, void 
       pm_avro_check(avro_value_get_by_name(obj, "rd_origin", &p_avro_field, NULL));
       pm_avro_check(avro_value_set_branch(&p_avro_field, TRUE, &p_avro_branch));
       pm_avro_check(avro_value_set_string(&p_avro_branch, bgp_rd_origin_print(bmed_bmp->rd.type)));
+
+      // TEMP: debug
+          // Log(LOG_INFO, "INFO ( %s/%s ): [BGP_ID=unavailable] deleting route        {RD=%s} \n",
+          //         config.name, "core/BMP", rd_str);
+          // Log(LOG_INFO, "INFO ( %s/%s ): [BGP_ID=unavailable] deleting route        {RD_ORIGIN:%s} \n",
+          //         config.name, "core/BMP", bgp_rd_origin_print(bmed_bmp->rd.type));
     }
     else {
       pm_avro_check(avro_value_get_by_name(obj, "rd", &p_avro_field, NULL));
@@ -599,4 +616,120 @@ void bgp_table_info_delete_tag_find_bmp(struct bgp_peer *peer)
 
   bgp_tag_init_find(bgpp ? bgpp : peer, (struct sockaddr *) bms->tag_peer, bms->tag);
   bgp_tag_find((struct id_table *)bms->tag->tag_table, bms->tag, &bms->tag->tag, NULL);
+}
+
+// Compare only RD and peer_type (as it seems to be that the flags in-out and other flags
+// are normally not set for peer up and down messages --> e.g. for global instance peer no flags
+// are set in the peer up msg, but only in the route monitoring msgs. )
+int bmp_peer_cmp(struct bmp_chars *a, struct bmp_chars *b) 
+{
+    if (a->peer_type == b->peer_type &&
+	!memcmp(&a->rd, &b->rd, sizeof(a->rd))) {
+      return FALSE;
+    }
+    else {
+      return TRUE;
+    }
+}
+
+void bgp_peer_info_delete_bmp(struct bgp_peer *peer, struct bmp_data *bdata)
+{
+  struct bgp_rt_structs *inter_domain_routing_db = bgp_select_routing_db(peer->type);
+  struct bgp_table *table;
+  afi_t afi;
+  safi_t safi;
+
+  struct bmp_chars *bchars = &bdata->chars;
+
+  if (!inter_domain_routing_db) return;
+
+  char rd_str[SHORTSHORTBUFLEN];
+  bgp_rd2str(rd_str, &bchars->rd);
+  struct bgp_misc_structs *bms = bgp_select_misc_db(peer->type);
+  Log(LOG_INFO, "INFO ( %s/%s ): [Peer Idx=%d] [BMP Peer Type=%d] bgp_table_info_delete: deleting all routes for the peer with RD=%s! \n",
+      config.name, bms->log_str, peer->idx, bchars->peer_type, rd_str);
+
+  // Go through all tables for each afi/safi pair 
+  // (can we increase efficiency??)
+  for (afi = AFI_IP; afi < AFI_MAX; afi++) {
+    for (safi = SAFI_UNICAST; safi < SAFI_MAX; safi++) {
+      table = inter_domain_routing_db->rib[afi][safi];
+      bgp_table_info_delete_bmp(peer, table, afi, safi, bchars);
+    }
+  }
+}
+
+
+// THIS ONE MAYBE DO NOT NEED TO DUPLICATE IT?? ASK PAOLO
+// JUST ADD THE rd argument as peer distinguisher here, then if null handle as normal!
+// TODO IMPORTANT: check that if the whole bmp peer still everything is also deleted (should call the other function in bgp which deletes everything, 
+//                 thus it's probably fine..)
+void bgp_table_info_delete_bmp(struct bgp_peer *peer, struct bgp_table *table, afi_t afi, safi_t safi, struct bmp_chars *bchars)
+{
+  struct bgp_misc_structs *bms = bgp_select_misc_db(peer->type);
+  struct bgp_node *node;
+
+  // Log(LOG_INFO, "INFO ( %s/%s ): [Peer Idx=%d] bgp_table_info_delete_bmp: AFI=%d, SAFI=%d count=%ld\n",
+  //     config.name, bms->log_str, peer->idx, afi, safi, table->count);
+
+  /* Being tag_map limited to 'ip' key lookups, this is finely
+     placed here. Should further lookups be possible, this may be
+     very possibly moved inside the loop */
+  if (bms->tag_map && bms->bgp_table_info_delete_tag_find) {
+    bms->bgp_table_info_delete_tag_find(peer);
+  }
+
+  node = bgp_table_top(peer, table);
+
+  while (node) {
+    u_int32_t modulo;
+    u_int32_t peer_buckets;
+    struct bgp_info *ri;
+    struct bgp_info *ri_next;
+
+    // TODO: speed up this when using RD in bucketing --> we can directly find the specific bucket with the information!
+    //  ---> capire qui meglio quale RD viene preso per l'hashing e la correlation
+    //  ---> per BMP viene preso l'RD del per-peer header oppure anche quello nel BGP message?
+    if (bms->route_info_modulo) modulo = bms->route_info_modulo(peer, NULL, NULL, NULL, bms->table_per_peer_buckets);
+    else modulo = 0;
+
+    // TODO: this delete loop is/ the problem --> make sure here we don't discard all tables!
+    for (peer_buckets = 0; peer_buckets < bms->table_per_peer_buckets; peer_buckets++) {
+      for (ri = node->info[modulo + peer_buckets]; ri; ri = ri_next) {
+	if (ri->peer == peer) {  // check if the bgp node we found (bgp_info) belongs to our bgp peer (attualmente tutte le routes, perché non c'è distinzione, il BMP peering è considerato il peer semplicemente perché usa il bgp struct per definire bmp peering!!!!!!!!)
+
+          // Compare bmp_chars (peer_type, rib_type, rd) of the current node with the ones got from the peer down
+          struct bgp_msg_extra_data *node_bmed = &ri->bmed;
+          // struct bmp_chars *node_bchars = ri->bmed.data;
+          struct bmp_chars *node_bchars = node_bmed->data;
+
+          char node_peer_distinguisher_str[SHORTSHORTBUFLEN];
+          bgp_rd2str(node_peer_distinguisher_str, &node_bchars->rd);
+          Log(LOG_INFO, "INFO ( %s/%s ): [Peer Idx=%d] bgp_table_info_delete_bmp: Peer Distinguisher where we learned this prefix from=%s\n",
+              config.name, bms->log_str, peer->idx, node_peer_distinguisher_str);
+
+          // TODO: check if we can compare with the existing fuction (probabilmente no siccome bgp_msg_extra_data non è stato generato, quindi non ha senso...)
+          if (!bmp_peer_cmp(node_bchars, bchars)) {
+              Log(LOG_INFO, "INFO ( %s/%s ): [Peer Idx=%d] bgp_table_info_delete_bmp: BMP PER-PEER HEADER DATA COMPARISON MATCHING --> delete route!\n",
+                  config.name, bms->log_str, peer->idx);
+              Log(LOG_INFO, "INFO ( %s/%s ): [Peer Idx=%d] bgp_table_info_delete_bmp: Peer Distinguisher where we learned this prefix from=%s\n",
+                  config.name, bms->log_str, peer->idx, node_peer_distinguisher_str);
+
+              if (bms->msglog_backend_methods) {
+
+                char event_type[] = "log";
+                bgp_peer_log_msg(node, ri, afi, safi, bms->tag, event_type, bms->msglog_output, NULL, BGP_LOG_TYPE_DELETE);
+              }
+
+              ri_next = ri->next; /* let's save pointer to next before free up */
+              bgp_info_delete(peer, node, ri, (modulo + peer_buckets));
+          }
+          else ri_next = ri->next;
+        }
+	else ri_next = ri->next;
+      }
+    }
+
+    node = bgp_route_next(peer, node);
+  }
 }
