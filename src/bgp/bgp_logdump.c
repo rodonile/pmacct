@@ -513,6 +513,16 @@ int bgp_peer_log_msg(struct bgp_node *route, struct bgp_info *ri, afi_t afi, saf
       pm_avro_check(avro_value_set_branch(&p_avro_field, FALSE, &p_avro_branch));
     }
 
+    // TEMP DEBUG
+    // char id_str[INET6_ADDRSTRLEN];
+    // memset(id_str, 0, INET6_ADDRSTRLEN);
+    // addr_to_str2(id_str, &ri->peer->id, AF_INET);
+    // if (log_type == BGP_LOG_TYPE_DELETE) {
+    //     Log(LOG_INFO, "INFO ( %s/%s ): [BGP_ID=%s]     deleting route          {prefix=%s} \n",
+    //             config.name, bms->log_str, id_str, prefix_str);
+    // }
+
+
     if (attr) {
       memset(nexthop_str, 0, INET6_ADDRSTRLEN);
       if (attr->mp_nexthop.family) addr_to_str2(nexthop_str, &attr->mp_nexthop, attr->mp_nexthop.family);
@@ -720,6 +730,15 @@ int bgp_peer_log_msg(struct bgp_node *route, struct bgp_info *ri, afi_t afi, saf
 	pm_avro_check(avro_value_get_by_name(&p_avro_obj, "rd_origin", &p_avro_field, NULL));
 	pm_avro_check(avro_value_set_branch(&p_avro_field, TRUE, &p_avro_branch));
 	pm_avro_check(avro_value_set_string(&p_avro_branch, bgp_rd_origin_print(ri->attr_extra->rd.type)));
+
+        // TEMP: debug
+        // if (log_type == BGP_LOG_TYPE_DELETE) {
+        //     Log(LOG_INFO, "INFO ( %s/%s ): [BGP_ID=%s]     deleting route            {RD=%s} \n",
+        //             config.name, bms->log_str, id_str, rd_str);
+        //     Log(LOG_INFO, "INFO ( %s/%s ): [BGP_ID=%s]     deleting route            {RD_ORIGIN:%s} \n",
+        //             config.name, bms->log_str, id_str, bgp_rd_origin_print(ri->attr_extra->rd.type));
+        // }
+
       }
       else {
 	pm_avro_check(avro_value_get_by_name(&p_avro_obj, "rd", &p_avro_field, NULL));

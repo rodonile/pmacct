@@ -561,6 +561,9 @@ void *pm_tdelete (const void *key, void **vrootp, pm_compar_fn_t compar)
    (FALSE), ie. due to budgeted traversal */
 static void pm_trecurse (const void *vroot, pm_action_fn_t action, int level, void *extra)
 {
+
+  Log(LOG_INFO, "INFO ( pmsearch.c/pm_trecurse ): WALKING THE TREE...\n");
+
   int ret = TRUE;
   pm_const_node root = (pm_const_node) vroot;
 
@@ -594,6 +597,8 @@ static void pm_trecurse (const void *vroot, pm_action_fn_t action, int level, vo
    called at each node.  */
 void pm_twalk (const void *vroot, pm_action_fn_t action, void *extra)
 {
+  Log(LOG_INFO, "INFO ( pmsearch.c/pm_twalk ): WALKING THE TREE...\n");
+
   pm_const_node root = (pm_const_node) vroot;
 
   if (root != NULL && action != NULL)

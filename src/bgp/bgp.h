@@ -211,6 +211,7 @@ struct bgp_peer {
      bmp_peer.bgp_peers[n].bmp_se:	backpointer to parent struct bmp_peer
   */
   void *bmp_se;
+  rd_t  peer_distinguisher; // only relevant for a BGP peer learned via BMP (but we need it as a discriminator together with addr/addr_str for the compare function)
 
   struct bgp_xconnect xc;
   struct bgp_peer_buf xbuf;

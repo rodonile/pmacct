@@ -51,4 +51,9 @@ extern void encode_tstamp_arrival(char *, int, struct timeval *, int);
 extern char *decode_tstamp_arrival(char *);
 
 extern void bgp_table_info_delete_tag_find_bmp(struct bgp_peer *);
+
+extern void bgp_peer_info_delete_bmp(struct bgp_peer *, struct bmp_data *);
+extern void bgp_table_info_delete_bmp(struct bgp_peer *, struct bgp_table *, afi_t, safi_t, struct bmp_chars *);
+
+extern int bmp_peer_cmp(const void *, const void *);
 #endif //BMP_UTIL_H

@@ -275,6 +275,7 @@ void bmp_process_msg_term(char **bmp_packet, u_int32_t *len, struct bmp_peer *bm
 
 void bmp_process_msg_peer_up(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp)
 {
+
   struct bgp_misc_structs *bms;
   struct bgp_peer *peer;
   struct bmp_data bdata;
@@ -287,6 +288,9 @@ void bmp_process_msg_peer_up(char **bmp_packet, u_int32_t *len, struct bmp_peer 
   bms = bgp_select_misc_db(peer->type);
 
   if (!bms) return;
+
+  Log(LOG_INFO, "INFO ( %s/%s ): [%s] [peer up] start processing...\n",
+      config.name, bms->log_str, peer->addr_str);
 
   memset(&bdata, 0, sizeof(bdata));
 
@@ -324,6 +328,17 @@ void bmp_process_msg_peer_up(char **bmp_packet, u_int32_t *len, struct bmp_peer 
   if (!bdata.family) return;
 
   gettimeofday(&bdata.tstamp_arrival, NULL);
+
+
+  char peer_ip_str[INET6_ADDRSTRLEN];
+  memset(peer_ip_str, 0, INET6_ADDRSTRLEN);
+  addr_to_str2(peer_ip_str, &bdata.peer_ip, AF_INET);  
+  char rd_str[SHORTSHORTBUFLEN];
+  bgp_rd2str(rd_str, &bdata.chars.rd);
+  Log(LOG_INFO, "INFO ( %s/%s ): [%s] [peer up] Peer IP =  %s\n",
+      config.name, bms->log_str, peer->addr_str, peer_ip_str);
+  Log(LOG_INFO, "INFO ( %s/%s ): [%s] [peer up] |__--> Peer Distinguisher (RD of VRF) = %s\n",
+      config.name, bms->log_str, peer->addr_str, rd_str);
 
   struct bmp_log_peer_up blpu;
   struct bgp_peer bgp_peer_loc, bgp_peer_rem, *bmpp_bgp_peer;
@@ -642,22 +657,50 @@ void bmp_process_msg_peer_down(char **bmp_packet, u_int32_t *len, struct bmp_pee
 
   if (bdata.family == AF_INET) {
     ret = pm_tfind(&bdata.peer_ip, &bmpp->bgp_peers_v4, bgp_peer_host_addr_cmp);
+
+    char id_str[INET6_ADDRSTRLEN];
+    memset(id_str, 0, INET6_ADDRSTRLEN);
+    addr_to_str2(id_str, &bdata.bgp_id, AF_INET);    
+    Log(LOG_INFO, "INFO ( %s/%s ): [%s] Processing the peer down message (BGP ID = %s)...\n", config.name, bms->log_str, peer->addr_str, id_str);
   }
   else if (bdata.family == AF_INET6) {
     ret = pm_tfind(&bdata.peer_ip, &bmpp->bgp_peers_v6, bgp_peer_host_addr_cmp);
+
+    char id_str[INET6_ADDRSTRLEN];
+    memset(id_str, 0, INET6_ADDRSTRLEN);
+    addr_to_str2(id_str, &bdata.bgp_id, AF_INET);  
+    Log(LOG_INFO, "INFO ( %s/%s ): [%s] Processing the peer down message (BGP ID = %s)...\n", config.name, bms->log_str, peer->addr_str, id_str);
   }
 
   if (ret) {
-    bmpp_bgp_peer = (*(struct bgp_peer **) ret);
+    bmpp_bgp_peer = (*(struct bgp_peer **) ret);  // This gets us the local rib (considered as one peer with BGP_ID=0, however multiple peers are there -> but pmacct only has concept of bmp peer having multiple bgp peers by ip addr only)
 
-    bgp_peer_info_delete(bmpp_bgp_peer);
+    // QUESTION: what does pmacct do when receiving multiple peer up with same peer_ip address (i.e. 0.0.0.0 for loc rib) then??
+    // ---> try to understand if it's possible to create new peers and changing/adding a new compare function (instead of bgp_peer_host_addr_cmp) to retrieve the peers??
+    //     ---> compare function that gets bdata.peer_ip and bdata.chars.rd and compares it with addr and peer_distinguisher of the bgp_peer struct
+    // ---> also we need to understand a bit better the difference between rd instance peer and the other ones
+    //      can it be used alongside local rib? or only with adj rib in /out?
 
-    if (bdata.family == AF_INET) {
-      pm_tdelete(&bdata.peer_ip, &bmpp->bgp_peers_v4, bgp_peer_host_addr_cmp);
-    }
-    else if (bdata.family == AF_INET6) {
-      pm_tdelete(&bdata.peer_ip, &bmpp->bgp_peers_v6, bgp_peer_host_addr_cmp);
-    }
+
+    char rd_str[SHORTSHORTBUFLEN];
+    bgp_rd2str(rd_str, &bdata.chars.rd);
+    Log(LOG_INFO, "INFO ( %s/%s ): [%s] Triggering deletion of routes for the peer with RD=%s...\n", config.name, bms->log_str, peer->addr_str, rd_str);
+
+    // bgp_peer_info_delete(bmpp_bgp_peer);
+    bgp_peer_info_delete_bmp(bmpp_bgp_peer, &bdata);  // here we also give the bmp per-peer header information along with to know from which BGP peer we got the peer down!
+
+
+    // TODO: think about --> what if we get a peer down msg for an global or RD instance PEER, then we do need to delete the whole tree...
+    // TODO: implement check whether we got a loc rib peer down message, if not also call the following tree delete functions (and better also call the other bgp_peer_info_delete function)
+    // ---> in practice use bmp_chars.rib_type == 3 (i.e. loc rib...)
+    // TODO: ask Paolo, because this is a not so good workaround --> we don't register a peer for all the peer up messages we get.....
+
+    // if (bdata.family == AF_INET) {
+    //   pm_tdelete(&bdata.peer_ip, &bmpp->bgp_peers_v4, bgp_peer_host_addr_cmp);
+    // }
+    // else if (bdata.family == AF_INET6) {
+    //   pm_tdelete(&bdata.peer_ip, &bmpp->bgp_peers_v6, bgp_peer_host_addr_cmp);
+    // }
   }
   /* missing BMP peer up message, ie. case of replay/replication of BMP messages */
   else {

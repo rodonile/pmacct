@@ -731,6 +731,8 @@ void bgp_peer_close(struct bgp_peer *peer, int type, int no_quiet, int send_noti
 
   if (!bms) return;
 
+  Log(LOG_INFO, "INFO ( %s/%s ): bgp_peer_close: starting.\n", config.name, bms->log_str);
+
   if (!config.bgp_xconnect_map) {
     if (send_notification) {
       int ret, notification_msglen = (BGP_MIN_NOTIFICATION_MSG_SIZE + BGP_NOTIFY_CEASE_SM_LEN + 1);
@@ -741,6 +743,7 @@ void bgp_peer_close(struct bgp_peer *peer, int type, int no_quiet, int send_noti
     }
 
     /* be quiet if we are in a signal handler and already set to exit */
+    Log(LOG_INFO, "INFO ( %s/%s ): bgp_peer_close: calling bgp_peer_info_delete.\n", config.name, bms->log_str);
     if (!no_quiet) bgp_peer_info_delete(peer);
 
     if (bms->msglog_file || bms->msglog_amqp_routing_key || bms->msglog_kafka_topic)
@@ -884,6 +887,12 @@ void bgp_peer_info_delete(struct bgp_peer *peer)
 
   if (!inter_domain_routing_db) return;
 
+  struct bgp_misc_structs *bms = bgp_select_misc_db(peer->type);
+  Log(LOG_INFO, "INFO ( %s/%s ): [Peer Idx=%d] [Peer Type=%d] bgp_peer_info_delete: deleting all routes for the peer! \n",
+      config.name, bms->log_str, peer->idx, peer->type);
+
+
+  // Go through all tables for each afi/safi pair 
   for (afi = AFI_IP; afi < AFI_MAX; afi++) {
     for (safi = SAFI_UNICAST; safi < SAFI_MAX; safi++) {
       table = inter_domain_routing_db->rib[afi][safi];
@@ -896,6 +905,9 @@ void bgp_table_info_delete(struct bgp_peer *peer, struct bgp_table *table, afi_t
 {
   struct bgp_misc_structs *bms = bgp_select_misc_db(peer->type);
   struct bgp_node *node;
+
+  // Log(LOG_INFO, "INFO ( %s/%s ): [Peer Idx=%d] bgp_table_info_delete: AFI=%d, SAFI=%d count=%ld\n",
+  //     config.name, bms->log_str, peer->idx, afi, safi, table->count);
 
   /* Being tag_map limited to 'ip' key lookups, this is finely
      placed here. Should further lookups be possible, this may be
@@ -915,9 +927,11 @@ void bgp_table_info_delete(struct bgp_peer *peer, struct bgp_table *table, afi_t
     if (bms->route_info_modulo) modulo = bms->route_info_modulo(peer, NULL, NULL, NULL, bms->table_per_peer_buckets);
     else modulo = 0;
 
+    // TODO: this delete loop is the problem --> make sure here we don't discard all tables!
     for (peer_buckets = 0; peer_buckets < bms->table_per_peer_buckets; peer_buckets++) {
       for (ri = node->info[modulo + peer_buckets]; ri; ri = ri_next) {
 	if (ri->peer == peer) {
+
 	  if (bms->msglog_backend_methods) {
 	    char event_type[] = "log";
 
@@ -1611,6 +1625,10 @@ int bgp_peers_bintree_walk_delete(const void *nodep, const pm_VISIT which, const
   bms = bgp_select_misc_db(peer->type);
 
   if (!bms) return FALSE;
+
+  Log(LOG_INFO, "INFO ( %s/%s ): bgp_peers_bintree_walk_delete: calling bgp_peer_info_delete.\n", config.name, bms->log_str);
+
+  // TODO: here try to print out RD in extra data!
 
   bgp_peer_info_delete(peer);
 
