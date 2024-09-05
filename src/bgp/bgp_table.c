@@ -269,14 +269,28 @@ bgp_node_match (const struct bgp_table *table, struct prefix *p, struct bgp_peer
 
   /* RD info is known here: bucket number can be calculated exactly 
      --> no need to iterate through the whole peer_bucket  */
+  // TODO: remember that with this enabled the fallback for RR learned routes is not working!
+  //       for the same reason also we wouldn't be able to correlate with routes with RD_ORIGIN=bgp (vpnv4 bgp messages)
+  //       --> reason is that we are directed to the bucket containing NLRIs for the peer with Peer_Dist matching flow RD!
+  //       --> possible fix: start at the bucket according to modulo with RD, but still iterate through the whole peer_bucket
+  //       --> However, slight possibility to re-introduce 99% CPU util bug
   else if (bms->table_per_peer_hash == BGP_ASPATH_HASH_MPLSVPNRD) {
     per_peer_buckets = bms->table_per_peer_buckets;
     modulo_idx_max = 1;
+    // modulo_idx_max = bms->table_per_peer_buckets;
   }
   else per_peer_buckets = modulo_idx_max = 1;
 
   if (modulo_func) modulo = modulo_func(peer, nmct2->rd, NULL, NULL, per_peer_buckets);
   else modulo = 0;
+
+  // if (modulo_func) bucket_start = modulo_func(peer, NULL, NULL, NULL, per_peer_buckets);
+  // else bucket_start = 0;
+
+  // Log(LOG_INFO, "INFO ( %s/config/BMP ): bgp_node_match: modulo_result=%d(bucket start)\n", config.name, modulo);
+  // Log(LOG_INFO, "INFO ( %s/config/BMP ): bgp_node_match: modulo_idx_max=%d\n", config.name, modulo_idx_max);
+  // Log(LOG_INFO, "INFO ( %s/config/BMP ): bgp_node_match: peer bucket beginning=%d\n", config.name, 
+  //      modulo_func(peer, NULL, NULL, NULL, per_peer_buckets));
 
   matched_node = NULL;
   matched_info = NULL;
@@ -290,6 +304,12 @@ bgp_node_match (const struct bgp_table *table, struct prefix *p, struct bgp_peer
 	if (!cmp_func(info, nmct2)) {
 	  matched_node = node;
 	  matched_info = info;
+
+          // TMP DBG:
+          char p_str[INET6_ADDRSTRLEN];
+          memset(p_str, 0, INET6_ADDRSTRLEN);
+          prefix2str(p, p_str, PREFIX_STRLEN);          
+          Log(LOG_INFO, "INFO ( %s/config/BMP ): |__--> matched_prefix = %s\n", config.name, p_str);
 
 	  if (bnv) {
 	    bnv->v[bnv->entries].p = &node->p;

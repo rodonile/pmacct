@@ -204,6 +204,39 @@ void bmp_link_misc_structs(struct bgp_misc_structs *bms)
   bms->bgp_table_info_delete_tag_find = bgp_table_info_delete_tag_find_bmp;
 }
 
+int bgp_peer_cmp_bmp(const void *a, const void *b)
+{
+  int addr_cmp_res = host_addr_cmp(&((struct bgp_peer *)a)->addr, &((struct bgp_peer *)b)->addr);
+  if (addr_cmp_res != 0) return addr_cmp_res;
+
+  return memcmp(&((struct bgp_peer *)a)->peer_distinguisher, &((struct bgp_peer *)b)->peer_distinguisher, sizeof(rd_t));
+}
+
+int bgp_peer_host_addr_peer_dist_cmp(const void *a, const void *b)
+{
+  /* TEMP DBG LOG*/
+  // Log(LOG_INFO, "INFO ( %s/config/BMP ): bgp_peer_host_addr_peer_dist_cmp: current BGP peer attr:\n", config.name);
+  // char peer_ip_str[INET6_ADDRSTRLEN];
+  // memset(peer_ip_str, 0, INET6_ADDRSTRLEN);
+  // addr_to_str2(peer_ip_str, &((struct bgp_peer *)b)->addr, AF_INET);  
+  // char rd_str[SHORTSHORTBUFLEN];
+  // bgp_rd2str(rd_str, &((struct bgp_peer *)b)->peer_distinguisher);
+  // Log(LOG_INFO, "INFO ( %s/config/BMP ): Peer IP =  %s\n", config.name, peer_ip_str);
+  /* TEMP DBG LOG*/
+
+  int addr_cmp_res = host_addr_cmp(&((struct bmp_data *)a)->peer_ip, &((struct bgp_peer *)b)->addr);
+  if (addr_cmp_res != 0) return addr_cmp_res;
+
+  /* TEMP DBG LOG*/
+  // Log(LOG_INFO, "INFO ( %s/config/BMP ): bgp_peer_host_addr_peer_dist_cmp: host addr matched!\n", config.name);
+  // Log(LOG_INFO, "INFO ( %s/config/BMP ): |__--> Peer Distinguisher (RD of VRF) = %s\n", config.name, rd_str);
+  // int rd_cmp_res = memcmp(&((struct bmp_data *)a)->chars.rd, &((struct bgp_peer *)b)->peer_distinguisher, sizeof(rd_t));
+  // if (rd_cmp_res == 0) Log(LOG_INFO, "INFO ( %s/config/BMP ): bgp_peer_host_addr_peer_dist_cmp: peer dist matched!\n", config.name);;
+  /* TEMP DBG LOG*/
+
+  return memcmp(&((struct bmp_data *)a)->chars.rd, &((struct bgp_peer *)b)->peer_distinguisher, sizeof(rd_t));
+}
+
 struct bgp_peer *bmp_sync_loc_rem_peers(struct bgp_peer *bgp_peer_loc, struct bgp_peer *bgp_peer_rem)
 {
   if (!bgp_peer_loc || !bgp_peer_rem) return NULL;

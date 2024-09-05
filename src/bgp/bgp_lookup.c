@@ -84,6 +84,7 @@ void bgp_srcdst_lookup(struct packet_ptrs *pptrs, int type, struct bgp_lookup_in
 
   start_again_follow_default:
 
+  // This is how we find the relevant peer where to then look for the src/dst prefixes
   peer = bms->bgp_lookup_find_peer(sa, xs_entry, pptrs->l3_proto, compare_bgp_port);
   pptrs->bgp_peer = (char *) peer;
 
@@ -123,11 +124,18 @@ void bgp_srcdst_lookup(struct packet_ptrs *pptrs, int type, struct bgp_lookup_in
       }
     }
 
+    // char rd_str[SHORTSHORTBUFLEN];
+    // bgp_rd2str(rd_str, &rd);
+    // Log(LOG_INFO, "INFO ( %s/config/BMP ): RD from IPFIX = %s\n", config.name, rd_str);
+
     /* XXX: can be further optimized for the case of no SAFI_UNICAST rib */
     start_again_mpls_vpn:
     start_again_mpls_label:
 
+    Log(LOG_INFO, "INFO ( %s/config/BMP ): bgp_srcdst_lookup @start_again_mpls_vpn/label - SAFI = %d\n", config.name, safi);
+
     if (pptrs->l3_proto == ETHERTYPE_IP) {
+      Log(LOG_INFO, "INFO ( %s/config/BMP ): bgp_srcdst_lookup - l3_proto = ETHERTYPE_IP\n", config.name);
       if (!pptrs->bgp_src) {
 	memset(&nmct2, 0, sizeof(struct node_match_cmp_term2));
 	nmct2.peer = (struct bgp_peer *) pptrs->bgp_peer;
@@ -187,9 +195,12 @@ void bgp_srcdst_lookup(struct packet_ptrs *pptrs, int type, struct bgp_lookup_in
       }
     }
     else if (pptrs->l3_proto == ETHERTYPE_IPV6) {
+      Log(LOG_INFO, "INFO ( %s/config/BMP ): bgp_srcdst_lookup - l3_proto = ETHERTYPE_IPV6\n", config.name);
 
       /* SRv6 Tunnel with IPv4 inner/customer layer */
       if (pptrs->flow_type.traffic_type == PM_FTYPE_SRV6_IPV4) { 
+        Log(LOG_INFO, "INFO ( %s/config/BMP ): bgp_srcdst_lookup - flow_type.traffic_type = PM_FTYPE_SRV6_IPV4\n", config.name);
+
         if (!pptrs->bgp_src) {
           memset(&nmct2, 0, sizeof(struct node_match_cmp_term2));
           nmct2.peer = (struct bgp_peer *) pptrs->bgp_peer;
@@ -251,6 +262,8 @@ void bgp_srcdst_lookup(struct packet_ptrs *pptrs, int type, struct bgp_lookup_in
 
       /* SRv6 Tunnel with IPv6 inner/customer layer */
       else if (pptrs->flow_type.traffic_type == PM_FTYPE_SRV6_IPV6) {
+        Log(LOG_INFO, "INFO ( %s/config/BMP ): bgp_srcdst_lookup - flow_type.traffic_type = PM_FTYPE_SRV6_IPV6\n", config.name);
+
         if (!pptrs->bgp_src) {
           memset(&nmct2, 0, sizeof(struct node_match_cmp_term2));
           nmct2.peer = (struct bgp_peer *) pptrs->bgp_peer;
@@ -312,6 +325,8 @@ void bgp_srcdst_lookup(struct packet_ptrs *pptrs, int type, struct bgp_lookup_in
 
       /* Plain IPv6 or other IPv6 scenarios */
       else {
+        Log(LOG_INFO, "INFO ( %s/config/BMP ): bgp_srcdst_lookup - flow_type.traffic_type = ANY OTHER\n", config.name);
+
         if (!pptrs->bgp_src) {
           memset(&nmct2, 0, sizeof(struct node_match_cmp_term2));
           nmct2.peer = (struct bgp_peer *) pptrs->bgp_peer;
@@ -375,22 +390,37 @@ void bgp_srcdst_lookup(struct packet_ptrs *pptrs, int type, struct bgp_lookup_in
     /* XXX: tackle the case of Peer Distinguisher from BMP header
        probably needs deeper thoughts for a cleaner approach */
     if ((!pptrs->bgp_src || !pptrs->bgp_dst) && safi == SAFI_MPLS_VPN && type == FUNC_TYPE_BMP) {
+      Log(LOG_INFO, "INFO ( %s/config/BMP ): bgp_srcdst_lookup - safi=SAFI_MPLS_VPN and FUNC_TYPE_BMP (RD from BMP PD)\n", config.name);
+      Log(LOG_INFO, "INFO ( %s/config/BMP ): bgp_srcdst_lookup - setting safi=SAFI_UNICAST & goto start_again_mpls_vpn\n", config.name);
+
       safi = SAFI_UNICAST;
       goto start_again_mpls_vpn;
     }
 
-    if ((!pptrs->bgp_src || !pptrs->bgp_dst) && safi != SAFI_MPLS_LABEL) {
+   if ((!pptrs->bgp_src || !pptrs->bgp_dst) && safi != SAFI_MPLS_LABEL) {
+      Log(LOG_INFO, "INFO ( %s/config/BMP ): bgp_srcdst_lookup - safi!=SAFI_MPLS_LABEL\n", config.name);
+
       if (pptrs->l3_proto == ETHERTYPE_IP && inter_domain_routing_db->rib[AFI_IP][SAFI_MPLS_LABEL]) {
+
+        Log(LOG_INFO, "INFO ( %s/config/BMP ): bgp_srcdst_lookup - l3_proto=ETHERTYPE_IP (MPLS)\n", config.name);
+        Log(LOG_INFO, "INFO ( %s/config/BMP ): bgp_srcdst_lookup - setting safi=SAFI_MPLS_LABEL & goto start_again_mpls_vpn\n", config.name);
+
         safi = SAFI_MPLS_LABEL;
         goto start_again_mpls_label;
       }
       else if (pptrs->l3_proto == ETHERTYPE_IPV6 && inter_domain_routing_db->rib[AFI_IP6][SAFI_MPLS_LABEL]) {
+
+        Log(LOG_INFO, "INFO ( %s/config/BMP ): bgp_srcdst_lookup - l3_proto=ETHERTYPE_IPV6 (SRv6)\n", config.name);
+        Log(LOG_INFO, "INFO ( %s/config/BMP ): bgp_srcdst_lookup - setting safi=SAFI_MPLS_LABEL & goto start_again_mpls_vpn\n", config.name);
+
         safi = SAFI_MPLS_LABEL;
         goto start_again_mpls_label;
       }
     }
 
     if (follow_default && safi != SAFI_MPLS_VPN) {
+      Log(LOG_INFO, "INFO ( %s/config/BMP ): bgp_srcdst_lookup - follow_default && safi!=SAFI_MPLS_LABEL\n", config.name);
+
       default_node = NULL;
 
       if (pptrs->l3_proto == ETHERTYPE_IP) {
