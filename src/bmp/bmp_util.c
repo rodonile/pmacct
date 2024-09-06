@@ -547,29 +547,6 @@ char *bmp_term_reason_print(u_int16_t in)
   return out;
 }
 
-void bmp_rib_type_set(struct bmp_chars *chars)
-{
-  if (chars->is_loc) {
-    chars->rib_type = BMP_RIB_LOC_RIB; 
-  }
-  else if (chars->is_out) {
-    if (chars->is_post) {
-      chars->rib_type = BMP_RIB_ADJ_RIB_OUT_POST;
-    }
-    else {
-      chars->rib_type = BMP_RIB_ADJ_RIB_OUT_PRE;
-    }
-  }
-  else {
-    if (chars->is_post) {
-      chars->rib_type = BMP_RIB_ADJ_RIB_IN_POST;
-    }
-    else {
-      chars->rib_type = BMP_RIB_ADJ_RIB_IN_PRE;
-    }
-  }
-}
-
 char *bmp_rib_type_print(u_int8_t in)
 {
   char *out = NULL;

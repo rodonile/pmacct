@@ -278,8 +278,6 @@ bmp_process_msg_peer_up(struct bmp_peer *bmpp, const ParsedBmp *netgauze_parsed)
   }
   struct bmp_data bdata = bdata_res.ok;
 
-  bmp_rib_type_set(&bdata.chars);
-
   if (!bdata.family) return;
 
   gettimeofday(&bdata.tstamp_arrival, NULL);
@@ -402,7 +400,6 @@ void bmp_process_msg_peer_down(struct bmp_peer *bmpp, const ParsedBmp *parsed_bm
     return;
   }
   struct bmp_data bdata = peer_hdr_result.ok;
-  bmp_rib_type_set(&bdata.chars);
 
   if (!bdata.family) return;
 
@@ -490,7 +487,6 @@ void bmp_process_msg_route_monitor(struct bmp_peer *bmpp, const ParsedBmp *netga
     return;
   }
   struct bmp_data bdata = bdata_result.ok;
-  bmp_rib_type_set(&bdata.chars);
 
   if (!bdata.family) return;
 
@@ -607,7 +603,6 @@ void bmp_process_msg_route_mirror(struct bmp_peer *bmpp) {
 void bmp_process_msg_stats(struct bmp_peer *bmpp, const ParsedBmp *parsed_bmp) {
   struct bgp_misc_structs *bms;
   struct bgp_peer *peer;
-  struct bmp_data bdata = { 0 };
   struct bmp_stats_cnt_hdr *bsch;
   u_int16_t cnt_len;
 
@@ -628,9 +623,7 @@ void bmp_process_msg_stats(struct bmp_peer *bmpp, const ParsedBmp *parsed_bmp) {
         config.name, bms->log_str, peer->addr_str);
     return;
   }
-
-  bdata = bdata_result.ok;
-  bmp_rib_type_set(&bdata.chars);
+  struct bmp_data bdata = bdata_result.ok;
 
   BmpStatsResult stats_result = netgauze_bmp_stats_get_stats(parsed_bmp->message);
   if (stats_result.tag == CResult_Err) {
