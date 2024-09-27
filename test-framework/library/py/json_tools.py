@@ -31,6 +31,7 @@ def compare_json_objects(json1: Union[List, Dict], json2: Union[List, Dict]) -> 
     elif isinstance(json1, list) and isinstance(json2, list):
         if len(json1) != len(json2):
             return {'length': {'got': len(json1), 'expected': len(json2)}}
+
         differences = []
         for i in range(len(json1)):
             nested_diff = compare_json_objects(json1[i], json2[i])
