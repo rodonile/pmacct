@@ -553,7 +553,7 @@ void bmp_process_msg_route_monitor(struct bmp_peer *bmpp, const ParsedBmp *netga
       case BGP_NLRI_WITHDRAW:
         bgp_process_withdraw(&bmd, &pkt->prefix, &pkt->attr, &pkt->attr_extra, pkt->afi, pkt->safi, i);
         break;
-      case BGP_NLRI_UNDEFINED: {
+      case BGP_NLRI_EOR: {
         // this is EoR
         struct bgp_info ri = { 0 };
         ri.bmed = bmd.extra;

@@ -76,6 +76,7 @@
 #define BGP_NLRI_UNDEFINED			0
 #define BGP_NLRI_UPDATE				1
 #define BGP_NLRI_WITHDRAW			2
+#define BGP_NLRI_EOR    			3
 
 /* BGP Attribute flags. */
 #define BGP_ATTR_FLAG_OPTIONAL  0x80    /* Attribute is optional. */
