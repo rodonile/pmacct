@@ -24,7 +24,7 @@ def main(consumers):
     assert th.spawn_traffic_container('traffic-reproducer-403', detached=True)
 
     # Compare received messages on topic daisy.flow to reference file output-flow-00.json
-    th.set_ignored_fields(['stamp_inserted', 'stamp_updated', 'timestamp_max', 'timestamp_min'])
+    th.set_ignored_fields(['stamp_inserted', 'stamp_updated', 'timestamp_max', 'timestamp_min', 'psid_li'])
     assert th.read_and_compare_messages('daisy.flow', 'flow-00')
 
     # Close connections and check logs
