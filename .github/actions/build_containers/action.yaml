@@ -9,7 +9,6 @@ inputs:
   daemons:
     required: true
     type: string
-    default: "pmacctd nfacctd sfacctd uacctd pmbgpd pmbmpd pmtelemetryd"
   ci_num_workers:
     required: false
     type: string
