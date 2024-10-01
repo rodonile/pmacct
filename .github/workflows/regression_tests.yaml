@@ -32,8 +32,11 @@ on:
         - signals
         - ha
 
+#Global vars
+env:
+  DAEMONS: "pmacctd nfacctd sfacctd uacctd pmbgpd pmbmpd pmtelemetryd"
+
 jobs:
-  ### Step 0: Build Traffic Reproducer Images
   ### Step 1: Build Traffic Reproducer Images
   traf-repro-docker:
     runs-on: ubuntu-22.04
@@ -81,6 +84,8 @@ jobs:
 
       - name: Build containers
         uses: ./pmacct/.github/actions/build_containers/
+        with:
+            daemons: ${{env.DAEMONS}}
 
       - name: Download images and prepare artifacts
         run: |
@@ -229,7 +234,7 @@ jobs:
           name: "test_results_${{ env.TEST_FOLDER_NAME }}"
           path: pmacct/test-framework/results
 
-  # Step 5.5: Expose Results as Artifacts
+  # Step 5: Expose Results as Artifacts
   pytest-results:
     if: '!cancelled()'                                # always run this job, unless job manually cancelled
     needs: pytest-runtests
@@ -324,7 +329,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo
 
-  # Step 5.6: Deploy HTML report with github pages
+  # Step 6: Deploy HTML report with github pages
   pytest-html-report-deploy:
     if: ${{ !cancelled() && github.ref == 'refs/heads/master' }}    # We can only deploy pages from master (security reasons)
     needs: pytest-results
