@@ -4,6 +4,8 @@ FROM ubuntu:focal
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG DISTRIBUTION=ubuntu:focal
+ARG GIT_HASH
+ARG GIT_URL
 
 RUN apt-get update && \
     apt-get install -y \
@@ -34,9 +36,14 @@ RUN apt-get update && \
     pkg-config \
     sudo \
     wget \
-    zlib1g-dev
+    zlib1g-dev \
+    curl \
+    clang
 
 COPY ./ci/deps.sh .
 RUN ./deps.sh
+
+COPY ./ci/install_pmacct_gauze.sh .
+RUN ./install_pmacct_gauze.sh $GIT_URL $GIT_HASH
 
 ENTRYPOINT ["/bin/bash"]

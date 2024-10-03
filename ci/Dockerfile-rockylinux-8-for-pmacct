@@ -3,6 +3,8 @@
 FROM rockylinux:8
 
 ARG DISTRIBUTION=rockylinux:8
+ARG GIT_HASH
+ARG GIT_URL
 
 RUN yum install -y dnf-plugins-core && \
     yum config-manager --set-enabled powertools && \
@@ -37,9 +39,13 @@ RUN yum install -y dnf-plugins-core && \
     sudo \
     wget \
     which \
-    zlib-devel
+    zlib-devel \
+    clang
 
 COPY ./ci/deps.sh .
 RUN ./deps.sh
+
+COPY ./ci/install_pmacct_gauze.sh .
+RUN ./install_pmacct_gauze.sh $GIT_URL $GIT_HASH
 
 ENTRYPOINT ["/bin/bash"]

@@ -86,6 +86,7 @@ jobs:
           path: pmacct
           fetch-depth: 0
           fetch-tags: 1
+          submodules: "recursive"
 
       - name: Overwrite environment variables for the workflow_dispatch event
         run: |

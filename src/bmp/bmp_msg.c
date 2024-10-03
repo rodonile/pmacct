@@ -250,14 +250,6 @@ void bmp_process_msg_term(struct bmp_peer *bmpp, const ParsedBmp *parsed_bmp) {
   /* BGP peers are deleted as part of bmp_peer_close() */
 }
 
-static void dump_bytes(void* ptr, size_t len) {
-  Log(LOG_INFO, "[%p -> %p] ", ptr, ptr + len);
-  for (char* p = (char*)ptr; p < (char*)ptr + len; p++) {
-    Log(LOG_INFO, "%d ", *p);
-  }
-  Log(LOG_INFO, "\n");
-}
-
 void
 bmp_process_msg_peer_up(struct bmp_peer *bmpp, const ParsedBmp *netgauze_parsed) {
   struct bgp_misc_structs *bms;
@@ -284,7 +276,6 @@ bmp_process_msg_peer_up(struct bmp_peer *bmpp, const ParsedBmp *netgauze_parsed)
 
   struct bgp_peer bgp_peer_loc = { 0 }, bgp_peer_rem = { 0 }, *bmpp_bgp_peer;
   struct bmp_chars bmed_bmp = { 0 };
-  struct bgp_msg_data bmd = { 0 };
   void *ret = NULL;
 
   BmpPeerUpHdrResult peer_up_hdr_res = netgauze_bmp_peer_up_get_hdr(netgauze_parsed->message);
@@ -296,11 +287,6 @@ bmp_process_msg_peer_up(struct bmp_peer *bmpp, const ParsedBmp *netgauze_parsed)
   struct bmp_log_peer_up blpu = peer_up_hdr_res.ok;
 
   bgp_peer_loc.type = FUNC_TYPE_BMP;
-  bmd.peer = &bgp_peer_loc;
-
-  bmd.extra.id = BGP_MSG_EXTRA_DATA_BMP;
-  bmd.extra.len = sizeof(bmed_bmp);
-  bmd.extra.data = &bmed_bmp;
   bgp_msg_data_set_data_bmp(&bmed_bmp, &bdata);
 
   BmpPeerUpOpenResult peer_up_open_rx = netgauze_bmp_peer_up_get_open_rx(netgauze_parsed->message);
@@ -316,7 +302,6 @@ bmp_process_msg_peer_up(struct bmp_peer *bmpp, const ParsedBmp *netgauze_parsed)
   memcpy(&bgp_peer_loc.addr, &blpu.local_ip, sizeof(struct host_addr));
 
   bgp_peer_rem.type = FUNC_TYPE_BMP;
-  bmd.peer = &bgp_peer_rem;
 
   BmpPeerUpOpenResult peer_up_open_tx = netgauze_bmp_peer_up_get_open_tx(netgauze_parsed->message);
   if (peer_up_open_tx.tag == CResult_Err) {
@@ -603,11 +588,8 @@ void bmp_process_msg_route_mirror(struct bmp_peer *bmpp) {
 void bmp_process_msg_stats(struct bmp_peer *bmpp, const ParsedBmp *parsed_bmp) {
   struct bgp_misc_structs *bms;
   struct bgp_peer *peer;
-  struct bmp_stats_cnt_hdr *bsch;
-  u_int16_t cnt_len;
 
   /* unknown stats TLVs */
-  char *cnt_value;
   struct pm_list *tlvs = NULL;
 
   if (!bmpp) return;

@@ -24,6 +24,7 @@ set -e
 export AVRO_LIBS="-L/usr/local/avro/lib -L/usr/local/lib64 -lavro"
 export AVRO_CFLAGS="-I/usr/local/avro/include -I/usr/local/include"
 export LD_LIBRARY_PATH=/usr/local/avro/lib:/usr/local/lib64
+export PKG_CONFIG_PATH="/usr/local/lib64/pkgconfig:$PKG_CONFIG_PATH"
 
 #New versions of git complain with "unsafe directory "otherwise due to patches
 #for CVE-2022-24765, CVE-2022-24767
@@ -31,8 +32,10 @@ git config --global --add safe.directory `pwd`
 git config --global --add safe.directory `pwd`/src/external_libs/libcdada
 
 #Build & install
+echo "CONFIG_FLAGS=$CONFIG_FLAGS"
 ./autogen.sh
 ./configure --disable-silent-rules $CONFIG_FLAGS || (cat config.log && /bin/false)
+cat config.log
 make
 sudo make install
 

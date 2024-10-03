@@ -31,7 +31,12 @@ jobs:
           git config --global --add safe.directory $GITHUB_WORKSPACE
           git config --global --add safe.directory $GITHUB_WORKSPACE/src/external_libs/libcdada
           git rev-parse HEAD
-          docker build -f ci/Dockerfile-${{ matrix.builder-name }}-for-pmacct -t builder_${{ matrix.builder-name }} .
+          
+          GIT_URL="https://github.com/$GITHUB_REPOSITORY"
+          GIT_HASH="$GITHUB_SHA"
+          echo "Using state from $GIT_URL on commit $GIT_HASH"
+  
+          docker build -f ci/Dockerfile-${{ matrix.builder-name }}-for-pmacct -t builder_${{ matrix.builder-name }} --build-arg GIT_URL=$GIT_URL --build-arg GIT_HASH=$GIT_HASH .
           mkdir -p /tmp/docker/
           docker save -o /tmp/docker/builder_${{ matrix.builder-name }}.tar builder_${{ matrix.builder-name }}
 
@@ -69,7 +74,7 @@ jobs:
                 "--enable-mysql --enable-pgsql --enable-sqlite3 --enable-kafka --enable-geoipv2 --enable-jansson --enable-rabbitmq --enable-ndpi --enable-zmq --enable-avro --enable-serdes --enable-redis --enable-unyte-udp-notif",
                 "--enable-zmq"]
     env:
-      CONFIG_FLAGS: ${{ matrix.CONFIG_FLAGS }}
+      CONFIG_FLAGS: "${{ matrix.CONFIG_FLAGS }} --enable-pmacct-gauze"
     steps:
       - name: Info
         run: |
@@ -117,6 +122,7 @@ jobs:
           path: pmacct
           fetch-depth: 0
           fetch-tags: 1
+          submodules: "recursive"
 
       - name: Check DAEMONS env. variable...
         run: |

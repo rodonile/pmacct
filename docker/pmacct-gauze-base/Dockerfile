@@ -42,7 +42,8 @@ RUN apt-get update && \
     sudo \
     wget \
     zlib1g-dev \
-    curl
+    curl \
+    clang
 
 WORKDIR /tmp/pmacct/
 # About to deal with deps installation
@@ -56,7 +57,6 @@ RUN ./ci/deps.sh
 
 # Install Rust and cargo-c
 WORKDIR /tmp
-RUN apt install -y clang
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly --target nightly --profile minimal
 ENV PATH="/root/.cargo/bin:${PATH}"
 RUN cargo install --git https://github.com/mxyns/cargo-c cargo-c
@@ -92,9 +92,13 @@ RUN cargo cinstall --package pmacct-gauze-lib && ldconfig
 
 # Finally build pmacct with the pmacct-gauze library included
 WORKDIR /tmp/pmacct
-RUN ./autogen.sh && ./configure --enable-kafka --enable-redis  \
-                              --enable-zmq  --enable-jansson \
-                              --enable-avro --enable-serdes \
+RUN ./autogen.sh && ./configure --enable-mysql --enable-pgsql     \
+                              --enable-sqlite3 --enable-kafka   \
+                              --enable-geoipv2 --enable-jansson \
+                              --enable-rabbitmq --enable-nflog  \
+                              --enable-ndpi --enable-zmq        \
+                              --enable-avro --enable-serdes     \
+                              --enable-redis --enable-gnutls \
                               --enable-pmacct-gauze \
                               --without-external-deps && \
   make install
