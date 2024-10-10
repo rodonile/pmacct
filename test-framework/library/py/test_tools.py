@@ -8,6 +8,7 @@ import logging
 import secrets
 import time
 import datetime
+import shutil
 import library.py.json_tools as jsontools
 import library.py.helpers as helpers
 import library.py.escape_regex as escape_regex
@@ -102,6 +103,13 @@ def read_messages_and_overwrite_output_files(consumer: KMessageReader, params: K
         output_json.write(content)
 
     logger.warning('OVERWRITE=true - file changed: ' + output_json_file)
+
+    # Move the kafka_dump_file to a new file with a timestamp
+    # TODO: think a bit more about this (at least document the behaviour)...
+    timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    new_kafka_dump_file = consumer.dumpfile + '_' + timestamp + '.json'
+    shutil.move(kafka_dump_file, new_kafka_dump_file)
+    logger.info('Moved kafka dump file to: ' + new_kafka_dump_file)
 
     return True 
 
