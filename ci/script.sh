@@ -36,6 +36,7 @@ echo "CONFIG_FLAGS=$CONFIG_FLAGS"
 ./autogen.sh
 ./configure --disable-silent-rules $CONFIG_FLAGS || (cat config.log && /bin/false)
 cat config.log
+
 make
 sudo make install
 

@@ -192,7 +192,7 @@ jobs:
           echo "Fix mess with tags in actions/checkout..."
           git fetch -f && git fetch -f --tags
           echo "Deducing PMACCT_VERSION..."
-          PMACCT_VERSION=$(git describe --abbrev=0 --match="v*")
+          PMACCT_VERSION=$(git describe --abbrev=0 --match="pg-v*" --tags)
           echo "PMACCT_VERSION=$PMACCT_VERSION"
           echo "Uploading to dockerhub ...";
           echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin;
