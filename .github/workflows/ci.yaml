@@ -79,7 +79,7 @@ jobs:
       - name: Info
         run: |
           echo "Builder: builder_${{ matrix.builder-name }}"
-          echo "CONFIG_FLAGS: ${{ matrix.CONFIG_FLAGS }}"
+          echo "CONFIG_FLAGS: ${{ env.CONFIG_FLAGS }}"
 
       - name: Create /tmp/docker folder to copy the docker registry (artifact)
         run: |
