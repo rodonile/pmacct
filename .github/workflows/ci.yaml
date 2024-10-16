@@ -100,13 +100,14 @@ jobs:
           fetch-depth: 0
           path: pmacct
 
-      - name: Build in 'builder_${{ matrix.builder-name }}' with '${{ matrix.CONFIG_FLAGS }}'
+      - name: Build in 'builder_${{ matrix.builder-name }}' with '${{ env.CONFIG_FLAGS }}'
         run: |
           cd pmacct
           git config --global --add safe.directory $GITHUB_WORKSPACE
           git config --global --add safe.directory $GITHUB_WORKSPACE/src/external_libs/libcdada
           git rev-parse HEAD
           docker load -i /tmp/docker/builder_${{ matrix.builder-name }}.tar
+          echo "outside container CONFIG_FLAGS=$CONFIG_FLAGS env.CONFIG_FLAGS=${{ env.CONFIG_FLAGS }}"
           CONTAINER_ID=$(docker run --rm -it -d -v `pwd`:`pwd` -w `pwd` -e CONFIG_FLAGS builder_${{ matrix.builder-name }}:latest)
           echo "Launched container id:" $CONTAINER_ID
           docker exec -i $CONTAINER_ID ./ci/script.sh
