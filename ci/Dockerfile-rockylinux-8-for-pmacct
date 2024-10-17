@@ -14,6 +14,8 @@ RUN yum install -y dnf-plugins-core && \
     bash \
     bison \
     cmake \
+    clang \
+    clang-tools-extra \
     epel-release \
     flex \
     gcc \
