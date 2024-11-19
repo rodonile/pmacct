@@ -3,7 +3,7 @@ pcap:
   - bgp-multi-sources-update-keepalive.pcap
 
 repeat:
-  count: [1,100]                          # number of times to repeat each of the pcaps
+  count: [1,300]                          # number of times to repeat each of the pcaps
   pattern: "round-robin"                  # round-robin or bulk
 
 time_factor: 0.001                        # 1000x faster
