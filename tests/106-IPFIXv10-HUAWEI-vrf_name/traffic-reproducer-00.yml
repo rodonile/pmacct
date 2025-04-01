@@ -1,8 +1,8 @@
 pcap: traffic-00.pcap
 
-time_factor: 0.01
+time_factor: 1
 keep_open: false
-no_sync: true # send right away
+no_sync: false
 
 optimize:
   threading: false
@@ -26,4 +26,4 @@ ipfix:
       - 9991
   collector:                            # define the collector that will receive the reproduced messages
     ip: cafe::100
-    port: 9992
+    port: 9991

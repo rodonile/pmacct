@@ -1,2 +1,0 @@
-set_label=nkey%100.1,pkey%testing       ip=192.168.100.1/32
-set_label=nkey%unknown,pkey%unknown
