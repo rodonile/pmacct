@@ -837,24 +837,44 @@ void bmp_process_msg_route_monitor(char **bmp_packet, u_int32_t *len, struct bmp
     bmed_bmp.tlvs = tlvs;
   }
 
-  /* Let's parse the BGP Update PDU (TLV) */
+  /* Let's parse the Group TLV */
   if (peer->version == BMP_V4) {
+    cdada_list_t *tlvs = NULL;
     struct bmp_log_tlv *tlv = NULL;
 
-    tlv = bmp_tlv_list_find_v2(tlvs, BMP_ROUTE_MONITOR_INFO_BGP_PDU); 
-    if (tlv) {
-      bgp_pdu_ptr = tlv->val;
-      bgp_pdu_ptrptr = (char **) &bgp_pdu_ptr;
-      bgp_pdu_len = tlv->len;
-      bgp_pdu_lenptr = (u_int32_t *) &bgp_pdu_len;
-      tlv->val = NULL; /* flagging TLV value as 'consumed' */
-      tlv->len = 0;
+    tlvs = bmp_tlv_list_find_v2(tlvs, BMP_ROUTE_MONITOR_INFO_GROUP); 
+
+    while ((tlv = bmp_tlv_list_pop_v2(tlvs))) {
+      // XXX
+    }
+
+    bmp_tlv_list_destroy_v2(tlvs);
+  }
+
+  /* Let's parse the BGP Update PDU (TLV) */
+  if (peer->version == BMP_V4) {
+    cdada_list_t *tlvs = NULL;
+    struct bmp_log_tlv *tlv = NULL;
+
+    tlvs = bmp_tlv_list_find_v2(tlvs, BMP_ROUTE_MONITOR_INFO_BGP_PDU); 
+
+    /* There must be only one BGP PDU per Route Monitoring message */
+    if (cdada_list_size(tlvs) != 1) {
+      cdada_list_get(tlvs, 0, &tlv);
     }
     else {
-      Log(LOG_INFO, "INFO ( %s/%s ): [%s] [route monitor] packet discarded: BMPv4 missing BGP PDU TLV\n",
+      Log(LOG_INFO, "INFO ( %s/%s ): [%s] [route monitor] packet discarded: BMPv4 BGP PDU TLV != 1\n",
           config.name, bms->log_str, peer->addr_str);
       return;
     }
+
+    bgp_pdu_ptr = tlv->val;
+    bgp_pdu_ptrptr = (char **) &bgp_pdu_ptr;
+    bgp_pdu_len = tlv->len;
+    bgp_pdu_lenptr = (u_int32_t *) &bgp_pdu_len;
+    tlv->val = NULL; /* flagging TLV value as 'consumed' */
+    tlv->len = 0;
+    bmp_tlv_list_destroy_v2(tlvs);
   }
   else {
     bgp_pdu_ptrptr = bmp_packet;

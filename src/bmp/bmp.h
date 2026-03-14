@@ -1,6 +1,6 @@
 /*
     pmacct (Promiscuous mode IP Accounting package)
-    pmacct is Copyright (C) 2003-2025 by Paolo Lucente
+    pmacct is Copyright (C) 2003-2026 by Paolo Lucente
 */
 
 /*
@@ -310,7 +310,7 @@ static const struct bmp_tlv_def __attribute__((unused)) bmp_rm_info_types[] = {
   { "unknown8", BMP_TLV_SEM_UNKNOWN, NULL }
 };
 
-/* XXX: provisional code points */
+/* provisional code points: draft-ietf-grow-bmp-tlv-20 */
 #define BMP_ROUTE_MONITOR_INFO_UNKNOWN0	0
 #define BMP_ROUTE_MONITOR_INFO_SP	1
 #define BMP_ROUTE_MONITOR_INFO_GROUP	2
@@ -322,7 +322,7 @@ static const struct bmp_tlv_def __attribute__((unused)) bmp_rm_info_types[] = {
 #define BMP_ROUTE_MONITOR_INFO_UNKNOWN8	8
 #define BMP_ROUTE_MONITOR_INFO_MAX	8
 
-/* draft-ietf-grow-bmp-path-marking-tlv-03 */
+/* provisional code points: draft-ietf-grow-bmp-path-marking-tlv-03 */
 struct bmp_rm_pm_tlv {
   u_int32_t     path_status;
   u_int16_t     reason_code;

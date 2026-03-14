@@ -1,6 +1,6 @@
 /*  
     pmacct (Promiscuous mode IP Accounting package)
-    pmacct is Copyright (C) 2003-2025 by Paolo Lucente
+    pmacct is Copyright (C) 2003-2026 by Paolo Lucente
 */
 
 /*
@@ -194,20 +194,23 @@ void bmp_tlv_list_find_callback_v2(const cdada_list_t *list, const void *val, vo
   struct bmp_tlv_list_result *ctx = opaque;
 
   if (current && current->type == ctx->type) {
-    /* XXX: in case of repeated TLVs, honor the first one */
     if (!ctx->found) {
-      ctx->found = current;
+      bmp_tlv_list_add_v2(ctx->found, current->pen, current->type, current->len, current->index, current->val);
     }
   }
 }
 
-struct bmp_log_tlv *bmp_tlv_list_find_v2(cdada_list_t *tlvs, u_int16_t type)
+cdada_list_t *bmp_tlv_list_find_v2(cdada_list_t *tlvs, u_int16_t type)
 {
-  // Use the type as opaque data pointer replacement:
-  // store input type in 'search_type' and result in 'result'
   struct bmp_tlv_list_result ctx = { type, NULL };
 
-  if (!tlvs) {
+  ctx.found = bmp_tlv_list_new_v2();
+
+  if (!tlvs || !ctx.found) {
+    if (ctx.found) {
+      bmp_tlv_list_destroy_v2(ctx.found);
+    }
+
     return NULL;
   }
 
@@ -241,4 +244,24 @@ void bmp_tlv_list_destroy_v2(cdada_list_t *tlvs)
   }
 
   cdada_list_destroy(tlvs);
+}
+
+struct bmp_log_tlv *bmp_tlv_list_pop_v2(cdada_list_t *tlvs)
+{
+  struct bmp_log_tlv *tlv = NULL;
+  int rc;
+
+  /* front popping */
+  if (!tlvs || 1 > cdada_list_size(tlvs)) {
+    return NULL;
+  }
+  
+  rc = cdada_list_get(tlvs, 1, &tlv);
+  if (rc != CDADA_SUCCESS || !tlv) {
+    return NULL;
+  }
+  
+  cdada_list_remove(tlvs, tlv);
+
+  return tlv;
 }
