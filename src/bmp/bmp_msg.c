@@ -1,6 +1,6 @@
 /*  
     pmacct (Promiscuous mode IP Accounting package)
-    pmacct is Copyright (C) 2003-2025 by Paolo Lucente
+    pmacct is Copyright (C) 2003-2026 by Paolo Lucente
 */
 
 /*
@@ -785,7 +785,9 @@ void bmp_process_msg_route_monitor(char **bmp_packet, u_int32_t *len, struct bmp
     char *bmp_tlv_value;
 
     tlvs = bmp_tlv_list_new_v2();
-    if (!tlvs) return;
+    if (!tlvs) {
+      return;
+    }
 
     u_int32_t loc_len = (*len);
     char *loc_ptr = (*bmp_packet);
@@ -796,8 +798,7 @@ void bmp_process_msg_route_monitor(char **bmp_packet, u_int32_t *len, struct bmp
       if (!(bth = (struct bmp_tlv_hdr *) bmp_get_and_check_length(&loc_ptr, &loc_len, sizeof(struct bmp_tlv_hdr)))) {
         Log(LOG_INFO, "INFO ( %s/%s ): [%s] [route monitor] packet discarded: failed bmp_get_and_check_length() BMP TLV hdr\n",
             config.name, bms->log_str, peer->addr_str);
-        bmp_tlv_list_destroy_v2(tlvs);
-        return;
+        goto exit_lane;
       }
 
       bmp_tlv_hdr_get_type(bth, &bmp_tlv_type);
@@ -806,16 +807,14 @@ void bmp_process_msg_route_monitor(char **bmp_packet, u_int32_t *len, struct bmp
         if (!(bmp_tlv_get_pen(&loc_ptr, &loc_len, &bmp_tlv_len, &pen))) {
           Log(LOG_INFO, "INFO ( %s/%s ): [%s] [route monitor] packet discarded: failed bmp_tlv_get_pen()\n",
               config.name, bms->log_str, peer->addr_str);
-          bmp_tlv_list_destroy_v2(tlvs);
-          return;
+	  goto exit_lane;
         }
       }
 
       if (!(bmp_tlv_value = bmp_get_and_check_length(&loc_ptr, &loc_len, 2))) {
         Log(LOG_INFO, "INFO ( %s/%s ): [%s] [route monitor] packet discarded: failed bmp_get_and_check_length() BMP TLV index\n",
             config.name, bms->log_str, peer->addr_str);
-        bmp_tlv_list_destroy_v2(tlvs);
-        return;
+	goto exit_lane;
       }
 
       bmp_tlv_hdr_get_index(bmp_tlv_value, &bmp_tlv_index);
@@ -823,8 +822,7 @@ void bmp_process_msg_route_monitor(char **bmp_packet, u_int32_t *len, struct bmp
       if (!(bmp_tlv_value = bmp_get_and_check_length(&loc_ptr, &loc_len, bmp_tlv_len))) {
         Log(LOG_INFO, "INFO ( %s/%s ): [%s] [route monitor] packet discarded: failed bmp_get_and_check_length() BMP TLV value\n",
             config.name, bms->log_str, peer->addr_str);
-        bmp_tlv_list_destroy_v2(tlvs);
-	return;
+	goto exit_lane;
       }
 
       ret2 = bmp_tlv_list_add_v2(tlvs, pen, bmp_tlv_type, bmp_tlv_len, bmp_tlv_index, bmp_tlv_value);
@@ -839,42 +837,48 @@ void bmp_process_msg_route_monitor(char **bmp_packet, u_int32_t *len, struct bmp
 
   /* Let's parse the Group TLV */
   if (peer->version == BMP_V4) {
-    cdada_list_t *tlvs = NULL;
-    struct bmp_log_tlv *tlv = NULL;
+    cdada_list_t *group_tlvs = NULL;
+    struct bmp_log_tlv *group_tlv = NULL;
 
-    tlvs = bmp_tlv_list_find_v2(tlvs, BMP_ROUTE_MONITOR_INFO_GROUP); 
+    bdata.groups = bmp_groups_create();
+    group_tlvs = bmp_tlv_list_find_v2(tlvs, BMP_ROUTE_MONITOR_INFO_GROUP); 
 
-    while ((tlv = bmp_tlv_list_pop_v2(tlvs))) {
-      // XXX
+    while ((group_tlv = bmp_tlv_list_pop_v2(group_tlvs))) {
+      if (bmp_parse_group_tlv(bdata.groups, group_tlv->val, group_tlv->len, group_tlv->index) == ERR) {
+	cdada_list_destroy(group_tlvs);
+        goto exit_lane;
+      }
     }
 
-    bmp_tlv_list_destroy_v2(tlvs);
+    cdada_list_destroy(group_tlvs);
   }
 
   /* Let's parse the BGP Update PDU (TLV) */
   if (peer->version == BMP_V4) {
-    cdada_list_t *tlvs = NULL;
-    struct bmp_log_tlv *tlv = NULL;
+    cdada_list_t *bgp_pdu_tlvs = NULL;
+    struct bmp_log_tlv *bgp_pdu_tlv = NULL;
 
-    tlvs = bmp_tlv_list_find_v2(tlvs, BMP_ROUTE_MONITOR_INFO_BGP_PDU); 
+    bgp_pdu_tlvs = bmp_tlv_list_find_v2(tlvs, BMP_ROUTE_MONITOR_INFO_BGP_PDU); 
 
     /* There must be only one BGP PDU per Route Monitoring message */
-    if (cdada_list_size(tlvs) != 1) {
-      cdada_list_get(tlvs, 0, &tlv);
+    if (cdada_list_size(bgp_pdu_tlvs) != 1) {
+      cdada_list_get(bgp_pdu_tlvs, 0, &bgp_pdu_tlv);
     }
     else {
       Log(LOG_INFO, "INFO ( %s/%s ): [%s] [route monitor] packet discarded: BMPv4 BGP PDU TLV != 1\n",
           config.name, bms->log_str, peer->addr_str);
-      return;
+      bmp_tlv_list_destroy_v2(bgp_pdu_tlvs);
+      goto exit_lane;
     }
 
-    bgp_pdu_ptr = tlv->val;
+    bgp_pdu_ptr = bgp_pdu_tlv->val;
     bgp_pdu_ptrptr = (char **) &bgp_pdu_ptr;
-    bgp_pdu_len = tlv->len;
+    bgp_pdu_len = bgp_pdu_tlv->len;
     bgp_pdu_lenptr = (u_int32_t *) &bgp_pdu_len;
-    tlv->val = NULL; /* flagging TLV value as 'consumed' */
-    tlv->len = 0;
-    bmp_tlv_list_destroy_v2(tlvs);
+    bgp_pdu_tlv->val = NULL; /* flagging TLV value as 'consumed' */
+    bgp_pdu_tlv->len = 0;
+
+    bmp_tlv_list_destroy_v2(bgp_pdu_tlvs);
   }
   else {
     bgp_pdu_ptrptr = bmp_packet;
@@ -886,13 +890,13 @@ void bmp_process_msg_route_monitor(char **bmp_packet, u_int32_t *len, struct bmp
     if (bgp_update_len <= 0 || bgp_update_len > (*bgp_pdu_lenptr)) {
       Log(LOG_INFO, "INFO ( %s/%s ): [%s] [route monitor] packet discarded: bgp_get_packet_len() failed\n",
           config.name, bms->log_str, peer->addr_str);
-      return;
+      goto exit_lane;
     }
   }
   else {
     Log(LOG_INFO, "INFO ( %s/%s ): [%s] [route monitor] packet discarded: incomplete BGP header\n",
         config.name, bms->log_str, peer->addr_str);
-    return;
+    goto exit_lane;
   }
 
   if ((bgp_msg_type = bgp_get_packet_type((*bgp_pdu_ptrptr))) == BGP_UPDATE) {
@@ -900,8 +904,7 @@ void bmp_process_msg_route_monitor(char **bmp_packet, u_int32_t *len, struct bmp
     if (bgp_update_len <= 0) {
       Log(LOG_INFO, "INFO ( %s/%s ): [%s] [route monitor] packet discarded: bgp_parse_update_msg() failed\n",
           config.name, bms->log_str, peer->addr_str);
-      bmp_tlv_list_destroy_v2(bmed_bmp.tlvs);
-      return;
+      goto exit_lane;
     }
   }
   else {
@@ -914,11 +917,15 @@ void bmp_process_msg_route_monitor(char **bmp_packet, u_int32_t *len, struct bmp
   if (peer->version == BMP_V3) {
     bmp_get_and_check_length(bmp_packet, len, bgp_update_len);
   }
-  else {
+
+  exit_lane:
+
+  if (peer->version == BMP_V4) {
     free(bgp_pdu_ptr);
+    bmp_groups_destroy(bdata.groups);
   }
 
-  bmp_tlv_list_destroy_v2(bmed_bmp.tlvs);
+  bmp_tlv_list_destroy_v2(tlvs);
 }
 
 void bmp_process_msg_route_mirror(char **bmp_packet, u_int32_t *len, struct bmp_peer *bmpp)
@@ -1348,4 +1355,76 @@ void bmp_stats_cnt_get_afi_safi_data64(char **bmp_packet, u_int32_t *pkt_size, a
     memcpy(data, ptr, 8);
     (*data) = pm_ntohll((*data));
   }
+}
+
+cdada_map_t *bmp_groups_create()
+{
+  return cdada_map_create(uint16_t);
+}
+
+void bmp_group_destroy(const cdada_map_t *m, const void *k, void *v, void *o)
+{
+  struct bmp_group *group = v;
+
+  cdada_set_destroy(group->nlris);
+  free(group);
+}
+
+void bmp_groups_destroy(cdada_map_t *groups)
+{
+  if (groups) {
+    cdada_map_traverse(groups, &bmp_group_destroy, NULL);
+    cdada_map_destroy(groups);
+  }
+}
+
+int bmp_parse_group_tlv(cdada_list_t *groups, const char *tlv_buf, u_int16_t tlv_len, u_int16_t index)
+{
+  struct bmp_group *group = NULL;
+  u_int16_t off, nlri_idx;
+
+  /* index is the 2-byte Index field from the Indexed TLV header */
+  if (!(index & 0x8000)) {
+    return ERR; /* G-bit MUST be 1 for Group TLV */
+  }
+
+  /* TLV value is list of 2-byte NLRI indexes */
+  if (tlv_len < 4 || (tlv_len % 2) != 0) {
+    return ERR;
+  }
+
+  if (cdada_map_size(groups) > 0) {
+    if (cdada_map_find(groups, &index, NULL) == CDADA_SUCCESS) {
+      return ERR; /* must be unique in message */
+    }
+  }
+
+  group = malloc(sizeof(struct bmp_group));
+  if (!group) {
+    return ERR;
+  }
+
+  group->nlris = cdada_set_create(u_int16_t);
+  if (!group->nlris) {
+    free(group);
+    return ERR;
+  }
+
+  for (off = 0; off < tlv_len; off += 2) {
+    nlri_idx = (tlv_buf[off] << 8) | tlv_buf[off+1];
+
+    if (nlri_idx == 0) {
+      /* Group MUST NOT reference index 0 */
+      cdada_set_destroy(group->nlris);
+      free(group);
+      return ERR;
+    }
+
+    /* Store, set makes sure no duplicates */
+    cdada_set_insert(group->nlris, &nlri_idx);
+  }
+
+  cdada_map_insert(groups, &index, &group);
+
+  return SUCCESS;
 }

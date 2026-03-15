@@ -103,6 +103,7 @@ struct bmp_data {
   struct bmp_chars chars;
   struct timeval tstamp;
   struct timeval tstamp_arrival;
+  cdada_map_t *groups;
 };
 
 struct bmp_peer_hdr {
@@ -321,6 +322,11 @@ static const struct bmp_tlv_def __attribute__((unused)) bmp_rm_info_types[] = {
 #define BMP_ROUTE_MONITOR_INFO_UNKNOWN7	7
 #define BMP_ROUTE_MONITOR_INFO_UNKNOWN8	8
 #define BMP_ROUTE_MONITOR_INFO_MAX	8
+
+struct bmp_group {
+  u_int16_t index;		/* full index with G-bit=1 */
+  cdada_set_t *nlris;		/* NLRI indexes */
+};
 
 /* provisional code points: draft-ietf-grow-bmp-path-marking-tlv-03 */
 struct bmp_rm_pm_tlv {
