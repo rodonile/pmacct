@@ -43,4 +43,5 @@ extern void bmp_tlv_list_find_callback_v2(const cdada_list_t *, const void *, vo
 extern cdada_list_t *bmp_tlv_list_find_v2(cdada_list_t *, u_int16_t);
 extern void bmp_tlv_list_destroy_v2(cdada_list_t *);
 extern struct bmp_log_tlv *bmp_tlv_list_pop_v2(cdada_list_t *);
+extern int bmp_tlv_lookup_nlri(u_int16_t, u_int16_t, cdada_map_t *);
 #endif //BMP_TLV_H

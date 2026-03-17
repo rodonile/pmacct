@@ -840,11 +840,11 @@ void bmp_process_msg_route_monitor(char **bmp_packet, u_int32_t *len, struct bmp
     cdada_list_t *group_tlvs = NULL;
     struct bmp_log_tlv *group_tlv = NULL;
 
-    bdata.groups = bmp_groups_create();
+    bmed_bmp.groups = bmp_groups_create();
     group_tlvs = bmp_tlv_list_find_v2(tlvs, BMP_ROUTE_MONITOR_INFO_GROUP); 
 
     while ((group_tlv = bmp_tlv_list_pop_v2(group_tlvs))) {
-      if (bmp_parse_group_tlv(bdata.groups, group_tlv->val, group_tlv->len, group_tlv->index) == ERR) {
+      if (bmp_parse_group_tlv(bmed_bmp.groups, group_tlv->val, group_tlv->len, group_tlv->index) == ERR) {
 	cdada_list_destroy(group_tlvs);
         goto exit_lane;
       }
@@ -922,7 +922,7 @@ void bmp_process_msg_route_monitor(char **bmp_packet, u_int32_t *len, struct bmp
 
   if (peer->version == BMP_V4) {
     free(bgp_pdu_ptr);
-    bmp_groups_destroy(bdata.groups);
+    bmp_groups_destroy(bmed_bmp.groups);
   }
 
   bmp_tlv_list_destroy_v2(tlvs);

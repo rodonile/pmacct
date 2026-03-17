@@ -720,6 +720,7 @@ int bmp_log_msg_init(struct bgp_peer *peer, struct bmp_data *bdata, struct cdada
 	type = bmp_tlv_type_print(&dummy_tlv, "bmp_init_info", bmp_init_info_types, BMP_INIT_INFO_MAX);
 	pm_avro_check(avro_value_get_by_name(obj, type, &p_avro_field, NULL));
 	pm_avro_check(avro_value_set_branch(&p_avro_field, FALSE, &p_avro_branch));
+	free(type);
       }
     }
 #endif
@@ -869,6 +870,7 @@ int bmp_log_msg_term(struct bgp_peer *peer, struct bmp_data *bdata, struct cdada
 	type = bmp_tlv_type_print(&dummy_tlv, "bmp_term_info", bmp_term_info_types, BMP_TERM_INFO_MAX);
 	pm_avro_check(avro_value_get_by_name(obj, type, &p_avro_field, NULL));
 	pm_avro_check(avro_value_set_branch(&p_avro_field, FALSE, &p_avro_branch));
+	free(type);
       }
     }
 #endif
@@ -1150,6 +1152,7 @@ int bmp_log_msg_peer_up(struct bgp_peer *peer, struct bmp_data *bdata, struct cd
         type = bmp_tlv_type_print(&dummy_tlv, "bmp_peer_up_info", bmp_peer_up_info_types, BMP_PEER_UP_INFO_MAX);
         pm_avro_check(avro_value_get_by_name(obj, type, &p_avro_field, NULL));
         pm_avro_check(avro_value_set_branch(&p_avro_field, FALSE, &p_avro_branch));
+	free(type);
       }
     }
 #endif
@@ -1446,6 +1449,7 @@ int bmp_log_msg_peer_down(struct bgp_peer *peer, struct bmp_data *bdata, struct 
 	type = bmp_tlv_type_print(&dummy_tlv, "bmp_peer_down_info", bmp_peer_down_info_types, BMP_PEER_DOWN_INFO_MAX);
 	pm_avro_check(avro_value_get_by_name(obj, type, &p_avro_field, NULL));
 	pm_avro_check(avro_value_set_branch(&p_avro_field, FALSE, &p_avro_branch));
+	free(type);
       }
     }
 #endif

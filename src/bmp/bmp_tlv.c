@@ -256,7 +256,7 @@ struct bmp_log_tlv *bmp_tlv_list_pop_v2(cdada_list_t *tlvs)
     return NULL;
   }
   
-  rc = cdada_list_get(tlvs, 1, &tlv);
+  rc = cdada_list_get(tlvs, 0, &tlv);
   if (rc != CDADA_SUCCESS || !tlv) {
     return NULL;
   }
@@ -264,4 +264,39 @@ struct bmp_log_tlv *bmp_tlv_list_pop_v2(cdada_list_t *tlvs)
   cdada_list_remove(tlvs, tlv);
 
   return tlv;
+}
+
+int bmp_tlv_lookup_nlri(u_int16_t idx_tlv, u_int16_t nlri_idx, cdada_map_t *groups)
+{
+  /* Index 0: applies to all NLRIs in the Update. */
+  if (!idx_tlv) {
+    return TRUE;
+  }
+
+  /* Extract G-bit: full 2-byte value, top-most bit signals Group Index */
+  if (idx_tlv & 0x8000) {
+    struct bmp_group *group = NULL;
+
+    if (!groups) {
+      return FALSE;
+    }
+
+    /* Full index (including G-bit) is key in groups map */
+    if (cdada_map_find(groups, &idx_tlv, (void **) &group) != CDADA_SUCCESS || !group || !group->nlris) {
+      return FALSE;
+    }
+
+    /* Group TLV value is list of 2-byte NLRI indexes */
+    if (cdada_set_find(group->nlris, &nlri_idx) == CDADA_SUCCESS)
+      return TRUE;
+
+    return FALSE;
+  }
+
+  /* Non-group index: 1..N -> applies only to that NLRI. */
+  if (idx_tlv == nlri_idx) {
+    return TRUE;
+  }
+
+  return FALSE;
 }

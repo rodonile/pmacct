@@ -92,7 +92,8 @@ struct bmp_chars {
   rd_t pd;
 
   /* non-key */
-  struct cdada_list_t *tlvs;
+  cdada_list_t *tlvs;
+  cdada_map_t *groups;
 };
 
 struct bmp_data {
@@ -103,7 +104,6 @@ struct bmp_data {
   struct bmp_chars chars;
   struct timeval tstamp;
   struct timeval tstamp_arrival;
-  cdada_map_t *groups;
 };
 
 struct bmp_peer_hdr {

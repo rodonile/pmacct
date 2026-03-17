@@ -1,6 +1,6 @@
 /*  
     pmacct (Promiscuous mode IP Accounting package)
-    pmacct is Copyright (C) 2003-2025 by Paolo Lucente
+    pmacct is Copyright (C) 2003-2026 by Paolo Lucente
 */
 
 /*
@@ -378,15 +378,18 @@ int bgp_extra_data_process_bmp(struct bgp_msg_extra_data *bmed, struct bgp_info 
 	    }
 
 	    if (tlv->type == BMP_ROUTE_MONITOR_INFO_MARKING) {
-	      if (idx != ntohs(tlv->index)) {
-		if (tlv->val) free(tlv->val);
+	      /* Remove from the copy of the list of TLVs those that
+		 do not apply to the currently processed NLRI */
+	      if (!bmp_tlv_lookup_nlri(ntohs(tlv->index), (u_int16_t) idx, bmed_bmp_src->groups)) {
+		if (tlv->val) {
+		  free(tlv->val);
+		}
 		free(tlv);
-		cdada_list_erase(bmed_bmp_dst->tlvs, idx);
 
-		/* XXX: in case of repeated TLVs, honor the first one;
-		   alternatively one could go back to cdada_list_size()
-		   step for small lists */
-		break;
+		/* Delete element, read new size, rewind index (as
+		   it will be incremented shortly there-after */
+		cdada_list_erase(bmed_bmp_dst->tlvs, idx);
+		size--; idx--;
 	      }
 	    }
 	  }
