@@ -1,6 +1,6 @@
 /*  
     pmacct (Promiscuous mode IP Accounting package)
-    pmacct is Copyright (C) 2003-2025 by Paolo Lucente
+    pmacct is Copyright (C) 2003-2026 by Paolo Lucente
 */
 
 /*
@@ -1566,8 +1566,13 @@ int bmp_log_rm_tlv_pm_status(u_int32_t path_status, int output, void *vobj)
   if (output == PRINT_OUTPUT_JSON) {
 #ifdef WITH_JANSSON
     json_t *obj = (json_t *) vobj;
-    json_t *ps_array = json_array();
+    json_t *ps_array;
     char *value = NULL, value_str[SUPERSHORTBUFLEN];
+
+    ps_array = json_object_get(obj, "path_status");
+    if (!json_is_array(ps_array)) {
+      ps_array = json_array();
+    }
 
     if (!path_status) {
       json_array_append_new(ps_array, json_string("Unknown"));
