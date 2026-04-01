@@ -830,6 +830,10 @@ void bmp_process_msg_route_monitor(char **bmp_packet, u_int32_t *len, struct bmp
         Log(LOG_ERR, "ERROR ( %s/%s ): [%s] [route monitor] bmp_tlv_list_add() failed.\n", config.name, bms->log_str, peer->addr_str);
         exit_gracefully(1);
       }
+      else {
+        Log(LOG_DEBUG, "DEBUG ( %s/%s ): [%s] [route monitor] bmp_tlv_list_add(): type=%d len=%d index=%d\n",
+	    config.name, bms->log_str, peer->addr_str, bmp_tlv_type, bmp_tlv_len, bmp_tlv_index);
+      }
     }
   
     bmed_bmp.tlvs = tlvs;
@@ -861,7 +865,7 @@ void bmp_process_msg_route_monitor(char **bmp_packet, u_int32_t *len, struct bmp
     bgp_pdu_tlvs = bmp_tlv_list_find_v2(tlvs, BMP_ROUTE_MONITOR_INFO_BGP_PDU); 
 
     /* There must be only one BGP PDU per Route Monitoring message */
-    if (cdada_list_size(bgp_pdu_tlvs) != 1) {
+    if (cdada_list_size(bgp_pdu_tlvs) == 1) {
       cdada_list_get(bgp_pdu_tlvs, 0, &bgp_pdu_tlv);
     }
     else {

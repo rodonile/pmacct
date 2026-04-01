@@ -194,7 +194,7 @@ void bmp_tlv_list_find_callback_v2(const cdada_list_t *list, const void *val, vo
   struct bmp_tlv_list_result *ctx = opaque;
 
   if (current && current->type == ctx->type) {
-    if (!ctx->found) {
+    if (ctx->found) {
       bmp_tlv_list_add_v2(ctx->found, current->pen, current->type, current->len, current->index, current->val);
     }
   }
