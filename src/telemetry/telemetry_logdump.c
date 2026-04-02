@@ -653,6 +653,7 @@ void telemetry_daemon_msglog_init_amqp_host()
   if (!config.telemetry_msglog_amqp_exchange) config.telemetry_msglog_amqp_exchange = default_amqp_exchange;
   if (!config.telemetry_msglog_amqp_exchange_type) config.telemetry_msglog_amqp_exchange_type = default_amqp_exchange_type;
   if (!config.telemetry_msglog_amqp_host) config.telemetry_msglog_amqp_host = default_amqp_host;
+  if (!config.telemetry_msglog_amqp_port) config.telemetry_msglog_amqp_port = default_amqp_port;
   if (!config.telemetry_msglog_amqp_vhost) config.telemetry_msglog_amqp_vhost = default_amqp_vhost;
   if (!config.telemetry_msglog_amqp_retry) config.telemetry_msglog_amqp_retry = AMQP_DEFAULT_RETRY;
 
@@ -661,6 +662,7 @@ void telemetry_daemon_msglog_init_amqp_host()
   p_amqp_set_exchange(&telemetry_daemon_msglog_amqp_host, config.telemetry_msglog_amqp_exchange);
   p_amqp_set_exchange_type(&telemetry_daemon_msglog_amqp_host, config.telemetry_msglog_amqp_exchange_type);
   p_amqp_set_host(&telemetry_daemon_msglog_amqp_host, config.telemetry_msglog_amqp_host);
+  p_amqp_set_port(&telemetry_daemon_msglog_amqp_host, config.telemetry_msglog_amqp_port);
   p_amqp_set_vhost(&telemetry_daemon_msglog_amqp_host, config.telemetry_msglog_amqp_vhost);
   p_amqp_set_persistent_msg(&telemetry_daemon_msglog_amqp_host, config.telemetry_msglog_amqp_persistent_msg);
   p_amqp_set_frame_max(&telemetry_daemon_msglog_amqp_host, config.telemetry_msglog_amqp_frame_max);
@@ -686,6 +688,7 @@ void telemetry_dump_init_amqp_host(void *tdah)
   if (!config.telemetry_dump_amqp_exchange) config.telemetry_dump_amqp_exchange = default_amqp_exchange;
   if (!config.telemetry_dump_amqp_exchange_type) config.telemetry_dump_amqp_exchange_type = default_amqp_exchange_type;
   if (!config.telemetry_dump_amqp_host) config.telemetry_dump_amqp_host = default_amqp_host;
+  if (!config.telemetry_dump_amqp_port) config.telemetry_dump_amqp_port = default_amqp_port;
   if (!config.telemetry_dump_amqp_vhost) config.telemetry_dump_amqp_vhost = default_amqp_vhost;
 
   p_amqp_set_user(telemetry_dump_amqp_host, config.telemetry_dump_amqp_user);
@@ -693,6 +696,7 @@ void telemetry_dump_init_amqp_host(void *tdah)
   p_amqp_set_exchange(telemetry_dump_amqp_host, config.telemetry_dump_amqp_exchange);
   p_amqp_set_exchange_type(telemetry_dump_amqp_host, config.telemetry_dump_amqp_exchange_type);
   p_amqp_set_host(telemetry_dump_amqp_host, config.telemetry_dump_amqp_host);
+  p_amqp_set_port(telemetry_dump_amqp_host, config.telemetry_dump_amqp_port);
   p_amqp_set_vhost(telemetry_dump_amqp_host, config.telemetry_dump_amqp_vhost);
   p_amqp_set_persistent_msg(telemetry_dump_amqp_host, config.telemetry_dump_amqp_persistent_msg);
   p_amqp_set_frame_max(telemetry_dump_amqp_host, config.telemetry_dump_amqp_frame_max);

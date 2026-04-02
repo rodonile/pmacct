@@ -45,6 +45,7 @@ struct p_amqp_host {
   char *routing_key;
   struct p_table_rr rk_rr;
   char *host;
+  int port;
   char *vhost;
   int persistent_msg;
   u_int8_t content_type;
@@ -72,6 +73,7 @@ extern void p_amqp_set_routing_key(struct p_amqp_host *, char *);
 extern void p_amqp_set_routing_key_rr(struct p_amqp_host *, int);
 extern void p_amqp_set_exchange_type(struct p_amqp_host *, char *);
 extern void p_amqp_set_host(struct p_amqp_host *, char *);
+extern void p_amqp_set_port(struct p_amqp_host *, int);
 extern void p_amqp_set_vhost(struct p_amqp_host *, char *);
 extern void p_amqp_set_persistent_msg(struct p_amqp_host *, int);
 extern void p_amqp_set_frame_max(struct p_amqp_host *, u_int32_t);
@@ -109,6 +111,7 @@ extern char default_amqp_exchange[];
 extern char default_amqp_exchange_type[];
 extern char default_amqp_routing_key[];
 extern char default_amqp_host[];
+extern int default_amqp_port;
 extern char default_amqp_vhost[];
 
 #endif //AMQP_COMMON_H

@@ -2665,6 +2665,7 @@ void sfacctd_counter_init_amqp_host()
   if (!config.sfacctd_counter_amqp_exchange) config.sfacctd_counter_amqp_exchange = default_amqp_exchange;
   if (!config.sfacctd_counter_amqp_exchange_type) config.sfacctd_counter_amqp_exchange_type = default_amqp_exchange_type;
   if (!config.sfacctd_counter_amqp_host) config.sfacctd_counter_amqp_host = default_amqp_host;
+  if (!config.sfacctd_counter_amqp_port) config.sfacctd_counter_amqp_port = default_amqp_port;
   if (!config.sfacctd_counter_amqp_vhost) config.sfacctd_counter_amqp_vhost = default_amqp_vhost;
   if (!config.sfacctd_counter_amqp_retry) config.sfacctd_counter_amqp_retry = AMQP_DEFAULT_RETRY;
 
@@ -2673,6 +2674,7 @@ void sfacctd_counter_init_amqp_host()
   p_amqp_set_exchange(&sfacctd_counter_amqp_host, config.sfacctd_counter_amqp_exchange);
   p_amqp_set_exchange_type(&sfacctd_counter_amqp_host, config.sfacctd_counter_amqp_exchange_type);
   p_amqp_set_host(&sfacctd_counter_amqp_host, config.sfacctd_counter_amqp_host);
+  p_amqp_set_port(&sfacctd_counter_amqp_host, config.sfacctd_counter_amqp_port);
   p_amqp_set_vhost(&sfacctd_counter_amqp_host, config.sfacctd_counter_amqp_vhost);
   p_amqp_set_persistent_msg(&sfacctd_counter_amqp_host, config.sfacctd_counter_amqp_persistent_msg);
   p_amqp_set_frame_max(&sfacctd_counter_amqp_host, config.sfacctd_counter_amqp_frame_max);

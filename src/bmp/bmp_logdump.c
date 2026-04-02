@@ -2157,6 +2157,7 @@ void bmp_daemon_msglog_init_amqp_host()
   if (!config.bmp_daemon_msglog_amqp_exchange) config.bmp_daemon_msglog_amqp_exchange = default_amqp_exchange;
   if (!config.bmp_daemon_msglog_amqp_exchange_type) config.bmp_daemon_msglog_amqp_exchange_type = default_amqp_exchange_type;
   if (!config.bmp_daemon_msglog_amqp_host) config.bmp_daemon_msglog_amqp_host = default_amqp_host;
+  if (!config.bmp_daemon_msglog_amqp_port) config.bmp_daemon_msglog_amqp_port = default_amqp_port;
   if (!config.bmp_daemon_msglog_amqp_vhost) config.bmp_daemon_msglog_amqp_vhost = default_amqp_vhost;
   if (!config.bmp_daemon_msglog_amqp_retry) config.bmp_daemon_msglog_amqp_retry = AMQP_DEFAULT_RETRY;
 
@@ -2165,6 +2166,7 @@ void bmp_daemon_msglog_init_amqp_host()
   p_amqp_set_exchange(&bmp_daemon_msglog_amqp_host, config.bmp_daemon_msglog_amqp_exchange);
   p_amqp_set_exchange_type(&bmp_daemon_msglog_amqp_host, config.bmp_daemon_msglog_amqp_exchange_type);
   p_amqp_set_host(&bmp_daemon_msglog_amqp_host, config.bmp_daemon_msglog_amqp_host);
+  p_amqp_set_port(&bmp_daemon_msglog_amqp_host, config.bmp_daemon_msglog_amqp_port);
   p_amqp_set_vhost(&bmp_daemon_msglog_amqp_host, config.bmp_daemon_msglog_amqp_vhost);
   p_amqp_set_persistent_msg(&bmp_daemon_msglog_amqp_host, config.bmp_daemon_msglog_amqp_persistent_msg);
   p_amqp_set_frame_max(&bmp_daemon_msglog_amqp_host, config.bmp_daemon_msglog_amqp_frame_max);
@@ -2190,6 +2192,7 @@ void bmp_dump_init_amqp_host(void *bdah)
   if (!config.bmp_dump_amqp_exchange) config.bmp_dump_amqp_exchange = default_amqp_exchange;
   if (!config.bmp_dump_amqp_exchange_type) config.bmp_dump_amqp_exchange_type = default_amqp_exchange_type;
   if (!config.bmp_dump_amqp_host) config.bmp_dump_amqp_host = default_amqp_host;
+  if (!config.bmp_dump_amqp_port) config.bmp_dump_amqp_port = default_amqp_port;
   if (!config.bmp_dump_amqp_vhost) config.bmp_dump_amqp_vhost = default_amqp_vhost;
 
   p_amqp_set_user(bmp_dump_amqp_host, config.bmp_dump_amqp_user);
@@ -2197,6 +2200,7 @@ void bmp_dump_init_amqp_host(void *bdah)
   p_amqp_set_exchange(bmp_dump_amqp_host, config.bmp_dump_amqp_exchange);
   p_amqp_set_exchange_type(bmp_dump_amqp_host, config.bmp_dump_amqp_exchange_type);
   p_amqp_set_host(bmp_dump_amqp_host, config.bmp_dump_amqp_host);
+  p_amqp_set_port(bmp_dump_amqp_host, config.bmp_dump_amqp_port);
   p_amqp_set_vhost(bmp_dump_amqp_host, config.bmp_dump_amqp_vhost);
   p_amqp_set_persistent_msg(bmp_dump_amqp_host, config.bmp_dump_amqp_persistent_msg);
   p_amqp_set_frame_max(bmp_dump_amqp_host, config.bmp_dump_amqp_frame_max);

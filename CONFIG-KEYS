@@ -619,6 +619,26 @@ DESC:		See amqp_host. bgp_daemon_msglog_amqp_* directives are used by the BGP th
 		thread/daemon to dump data out at regular time intervals.
 DEFAULT:	See amqp_host
 
+KEY:		amqp_port
+DESC:           Defines the AMQP/RabbitMQ broker port. All amqp_* directives are used by the AMQP plugin
+		of flow daemons only. Check *_amqp_port out (ie. bgp_daemon_msglog_amqp_port) for the
+		equivalent directives relevant to other RabbitMQ exports.
+DEFAULT:        5672
+
+KEY:		[ bgp_daemon_msglog_amqp_port | bgp_table_dump_amqp_port | bmp_dump_amqp_port |
+		  bmp_daemon_msglog_amqp_port | sfacctd_counter_amqp_port |
+		  telemetry_daemon_msglog_amqp_port | telemetry_dump_amqp_port ] [GLOBAL]
+DESC:		See amqp_port. bgp_daemon_msglog_amqp_* directives are used by the BGP thread/daemon
+		to stream data out; bgp_table_dump_amqp_* directives are used by the BGP thread/daemon
+		to dump data out at regular time intervals; bmp_daemon_msglog_amqp_* directives are
+		used by the BMP thread/daemon to stream data out; bmp_dump_amqp_* directives are
+		used by the BMP thread/daemon to dump data out at regular time intervals;
+		sfacctd_counter_amqp_* directives are used by sfacctd to stream sFlow counter data out;
+		telemetry_daemon_msglog_amqp_* are used by the Streaming Telemetry thread/daemon to
+		stream data out; telemetry_dump_amqp_* directives are used by the Streaming Telemetry
+		thread/daemon to dump data out at regular time intervals.
+DEFAULT:	See amqp_port
+
 KEY:            amqp_vhost
 DESC:           Defines the AMQP/RabbitMQ server virtual host; see also amqp_host.
 DEFAULT:        "/"
