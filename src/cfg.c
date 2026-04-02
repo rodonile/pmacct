@@ -167,6 +167,7 @@ static const struct _dictionary_line dictionary[] = {
   {"amqp_history_roundoff", cfg_key_sql_history_roundoff},
   {"amqp_time_roundoff", cfg_key_sql_history_roundoff},
   {"amqp_host", cfg_key_sql_host},
+  {"amqp_port", cfg_key_sql_port},
   {"amqp_user", cfg_key_sql_user},
   {"amqp_passwd", cfg_key_sql_passwd},
   {"amqp_exchange", cfg_key_sql_db},
