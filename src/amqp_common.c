@@ -38,6 +38,7 @@ char default_amqp_exchange[] = "pmacct";
 char default_amqp_exchange_type[] = "direct";
 char default_amqp_routing_key[] = "acct";
 char default_amqp_host[] = "127.0.0.1";
+int default_amqp_port = 5672;
 char default_amqp_vhost[] = "/";
 
 /* Functions */
@@ -45,6 +46,7 @@ void p_amqp_init_host(struct p_amqp_host *amqp_host)
 {
   if (amqp_host) {
     memset(amqp_host, 0, sizeof(struct p_amqp_host));
+    p_amqp_set_port(amqp_host, default_amqp_port);
     p_amqp_set_frame_max(amqp_host, AMQP_DEFAULT_FRAME_SIZE);
     p_amqp_set_heartbeat_interval(amqp_host, AMQP_DEFAULT_HEARTBEAT);
     P_broker_timers_set_retry_interval(&amqp_host->btimers, AMQP_DEFAULT_RETRY);
@@ -113,6 +115,11 @@ void p_amqp_set_host(struct p_amqp_host *amqp_host, char *host)
   if (amqp_host) amqp_host->host = host;
 }
 
+void p_amqp_set_port(struct p_amqp_host *amqp_host, int port)
+{
+  if (amqp_host && port > 0 && port <= 65535) amqp_host->port = port;
+}
+
 void p_amqp_set_vhost(struct p_amqp_host *amqp_host, char *vhost)
 {
   if (amqp_host) amqp_host->vhost = vhost;
@@ -178,7 +185,7 @@ int p_amqp_connect_to_publish(struct p_amqp_host *amqp_host)
     return ERR;
   }
 
-  amqp_host->status = amqp_socket_open(amqp_host->socket, amqp_host->host, 5672 /* default port */);
+  amqp_host->status = amqp_socket_open(amqp_host->socket, amqp_host->host, amqp_host->port);
 
   if (amqp_host->status != AMQP_STATUS_OK) {
     Log(LOG_ERR, "ERROR ( %s/%s ): Connection failed to RabbitMQ: p_amqp_connect_to_publish(): unable to open socket\n", config.name, config.type);

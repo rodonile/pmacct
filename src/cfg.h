@@ -230,6 +230,7 @@ struct configuration {
   char *sfacctd_counter_file;
   int sfacctd_counter_max_nodes;
   char *sfacctd_counter_amqp_host;
+  int sfacctd_counter_amqp_port;
   char *sfacctd_counter_amqp_vhost;
   char *sfacctd_counter_amqp_user;
   char *sfacctd_counter_amqp_passwd;
@@ -278,6 +279,7 @@ struct configuration {
   char *telemetry_msglog_file;
   int telemetry_msglog_output;
   char *telemetry_msglog_amqp_host;
+  int telemetry_msglog_amqp_port;
   char *telemetry_msglog_amqp_vhost;
   char *telemetry_msglog_amqp_user;
   char *telemetry_msglog_amqp_passwd;
@@ -295,6 +297,7 @@ struct configuration {
   int telemetry_dump_refresh_time;
   int telemetry_dump_time_slots;
   char *telemetry_dump_amqp_host;
+  int telemetry_dump_amqp_port;
   char *telemetry_dump_amqp_vhost;
   char *telemetry_dump_amqp_user;
   char *telemetry_dump_amqp_passwd;
@@ -328,6 +331,7 @@ struct configuration {
   char *bgp_daemon_msglog_file;
   char *bgp_daemon_msglog_avro_schema_file;
   char *bgp_daemon_msglog_amqp_host;
+  int bgp_daemon_msglog_amqp_port;
   char *bgp_daemon_msglog_amqp_vhost;
   char *bgp_daemon_msglog_amqp_user;
   char *bgp_daemon_msglog_amqp_passwd;
@@ -402,6 +406,7 @@ struct configuration {
   int bgp_table_dump_refresh_time;
   int bgp_table_dump_time_slots;
   char *bgp_table_dump_amqp_host;
+  int bgp_table_dump_amqp_port;
   char *bgp_table_dump_amqp_vhost;
   char *bgp_table_dump_amqp_user;
   char *bgp_table_dump_amqp_passwd;
@@ -450,6 +455,7 @@ struct configuration {
   char *bmp_daemon_msglog_file;
   char *bmp_daemon_msglog_avro_schema_file;
   char *bmp_daemon_msglog_amqp_host;
+  int bmp_daemon_msglog_amqp_port;
   char *bmp_daemon_msglog_amqp_vhost;
   char *bmp_daemon_msglog_amqp_user;
   char *bmp_daemon_msglog_amqp_passwd;
@@ -484,6 +490,7 @@ struct configuration {
   int bmp_dump_time_slots;
   int bmp_dump_exclude_stats;
   char *bmp_dump_amqp_host;
+  int bmp_dump_amqp_port;
   char *bmp_dump_amqp_vhost;
   char *bmp_dump_amqp_user;
   char *bmp_dump_amqp_passwd;

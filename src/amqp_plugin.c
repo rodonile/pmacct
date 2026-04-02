@@ -412,6 +412,7 @@ void amqp_cache_purge(struct chained_cache *queue[], int index, int safe_action)
 
   /* setting some defaults */
   if (!config.sql_host) config.sql_host = default_amqp_host;
+  if (!config.amqp_port) config.amqp_port = default_amqp_port;
   if (!config.sql_db) config.sql_db = default_amqp_exchange;
   if (!config.amqp_exchange_type) config.amqp_exchange_type = default_amqp_exchange_type;
   if (!config.amqp_vhost) config.amqp_vhost = default_amqp_vhost;
@@ -433,6 +434,7 @@ void amqp_cache_purge(struct chained_cache *queue[], int index, int safe_action)
   p_amqp_set_routing_key(&amqpp_amqp_host, config.sql_table);
   p_amqp_set_exchange_type(&amqpp_amqp_host, config.amqp_exchange_type);
   p_amqp_set_host(&amqpp_amqp_host, config.sql_host);
+  p_amqp_set_port(&amqpp_amqp_host, config.amqp_port);
   p_amqp_set_vhost(&amqpp_amqp_host, config.amqp_vhost);
   p_amqp_set_persistent_msg(&amqpp_amqp_host, config.amqp_persistent_msg);
   p_amqp_set_frame_max(&amqpp_amqp_host, config.amqp_frame_max);
@@ -850,6 +852,7 @@ void amqp_avro_schema_purge(char *p_avro_schema_str)
 
   /* setting some defaults */
   if (!config.sql_host) config.sql_host = default_amqp_host;
+  if (!config.amqp_port) config.amqp_port = default_amqp_port;
   if (!config.sql_db) config.sql_db = default_amqp_exchange;
   if (!config.amqp_exchange_type) config.amqp_exchange_type = default_amqp_exchange_type;
   if (!config.amqp_vhost) config.amqp_vhost = default_amqp_vhost;
@@ -861,6 +864,7 @@ void amqp_avro_schema_purge(char *p_avro_schema_str)
   p_amqp_set_routing_key(&amqp_avro_schema_host, config.amqp_avro_schema_routing_key);
   p_amqp_set_exchange_type(&amqp_avro_schema_host, config.amqp_exchange_type);
   p_amqp_set_host(&amqp_avro_schema_host, config.sql_host);
+  p_amqp_set_port(&amqp_avro_schema_host, config.amqp_port);
   p_amqp_set_vhost(&amqp_avro_schema_host, config.amqp_vhost);
   p_amqp_set_persistent_msg(&amqp_avro_schema_host, config.amqp_persistent_msg);
   p_amqp_set_frame_max(&amqp_avro_schema_host, config.amqp_frame_max);

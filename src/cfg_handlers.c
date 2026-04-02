@@ -4888,6 +4888,23 @@ int cfg_key_bmp_daemon_msglog_amqp_host(char *filename, char *name, char *value_
   return changes;
 }
 
+int cfg_key_bmp_daemon_msglog_amqp_port(char *filename, char *name, char *value_ptr)
+{
+  struct plugins_list_entry *list = plugins_list;
+  int value, changes = 0;
+
+  value = atoi(value_ptr);
+  if ((value <= 0) || (value > 65535)) {
+    Log(LOG_ERR, "WARN: [%s] 'bmp_daemon_msglog_amqp_port' has to be in the range 1-65535.\n", filename);
+    return ERR;
+  }
+
+  for (; list; list = list->next, changes++) list->cfg.bmp_daemon_msglog_amqp_port = value;
+  if (name) Log(LOG_WARNING, "WARN: [%s] plugin name not supported for key 'bmp_daemon_msglog_amqp_port'. Globalized.\n", filename);
+
+  return changes;
+}
+
 int cfg_key_bmp_daemon_msglog_amqp_vhost(char *filename, char *name, char *value_ptr)
 {
   struct plugins_list_entry *list = plugins_list;
@@ -5195,6 +5212,23 @@ int cfg_key_bmp_daemon_dump_amqp_host(char *filename, char *name, char *value_pt
 
   for (; list; list = list->next, changes++) list->cfg.bmp_dump_amqp_host = value_ptr;
   if (name) Log(LOG_WARNING, "WARN: [%s] plugin name not supported for key 'bmp_dump_amqp_host'. Globalized.\n", filename);
+
+  return changes;
+}
+
+int cfg_key_bmp_daemon_dump_amqp_port(char *filename, char *name, char *value_ptr)
+{
+  struct plugins_list_entry *list = plugins_list;
+  int value, changes = 0;
+
+  value = atoi(value_ptr);
+  if ((value <= 0) || (value > 65535)) {
+    Log(LOG_ERR, "WARN: [%s] 'bmp_dump_amqp_port' has to be in the range 1-65535.\n", filename);
+    return ERR;
+  }
+
+  for (; list; list = list->next, changes++) list->cfg.bmp_dump_amqp_port = value;
+  if (name) Log(LOG_WARNING, "WARN: [%s] plugin name not supported for key 'bmp_dump_amqp_port'. Globalized.\n", filename);
 
   return changes;
 }
@@ -5532,6 +5566,23 @@ int cfg_key_sfacctd_counter_amqp_host(char *filename, char *name, char *value_pt
 
   for (; list; list = list->next, changes++) list->cfg.sfacctd_counter_amqp_host = value_ptr;
   if (name) Log(LOG_WARNING, "WARN: [%s] plugin name not supported for key 'sfacctd_counter_amqp_host'. Globalized.\n", filename);
+
+  return changes;
+}
+
+int cfg_key_sfacctd_counter_amqp_port(char *filename, char *name, char *value_ptr)
+{
+  struct plugins_list_entry *list = plugins_list;
+  int value, changes = 0;
+
+  value = atoi(value_ptr);
+  if ((value <= 0) || (value > 65535)) {
+    Log(LOG_ERR, "WARN: [%s] 'sfacctd_counter_amqp_port' has to be in the range 1-65535.\n", filename);
+    return ERR;
+  }
+
+  for (; list; list = list->next, changes++) list->cfg.sfacctd_counter_amqp_port = value;
+  if (name) Log(LOG_WARNING, "WARN: [%s] plugin name not supported for key 'sfacctd_counter_amqp_port'. Globalized.\n", filename);
 
   return changes;
 }
@@ -6871,6 +6922,23 @@ int cfg_key_bgp_daemon_msglog_amqp_host(char *filename, char *name, char *value_
   return changes;
 }
 
+int cfg_key_bgp_daemon_msglog_amqp_port(char *filename, char *name, char *value_ptr)
+{
+  struct plugins_list_entry *list = plugins_list;
+  int value, changes = 0;
+
+  value = atoi(value_ptr);
+  if ((value <= 0) || (value > 65535)) {
+    Log(LOG_ERR, "WARN: [%s] 'bgp_daemon_msglog_amqp_port' has to be in the range 1-65535.\n", filename);
+    return ERR;
+  }
+
+  for (; list; list = list->next, changes++) list->cfg.bgp_daemon_msglog_amqp_port = value;
+  if (name) Log(LOG_WARNING, "WARN: [%s] plugin name not supported for key 'bgp_daemon_msglog_amqp_port'. Globalized.\n", filename);
+
+  return changes;
+}
+
 int cfg_key_bgp_daemon_msglog_amqp_vhost(char *filename, char *name, char *value_ptr)
 {
   struct plugins_list_entry *list = plugins_list;
@@ -7146,6 +7214,23 @@ int cfg_key_bgp_daemon_table_dump_amqp_host(char *filename, char *name, char *va
 
   for (; list; list = list->next, changes++) list->cfg.bgp_table_dump_amqp_host = value_ptr;
   if (name) Log(LOG_WARNING, "WARN: [%s] plugin name not supported for key 'bgp_table_dump_amqp_host'. Globalized.\n", filename);
+
+  return changes;
+}
+
+int cfg_key_bgp_daemon_table_dump_amqp_port(char *filename, char *name, char *value_ptr)
+{
+  struct plugins_list_entry *list = plugins_list;
+  int value, changes = 0;
+
+  value = atoi(value_ptr);
+  if ((value <= 0) || (value > 65535)) {
+    Log(LOG_ERR, "WARN: [%s] 'bgp_table_dump_amqp_port' has to be in the range 1-65535.\n", filename);
+    return ERR;
+  }
+
+  for (; list; list = list->next, changes++) list->cfg.bgp_table_dump_amqp_port = value;
+  if (name) Log(LOG_WARNING, "WARN: [%s] plugin name not supported for key 'bgp_table_dump_amqp_port'. Globalized.\n", filename);
 
   return changes;
 }
@@ -8259,6 +8344,23 @@ int cfg_key_telemetry_msglog_amqp_host(char *filename, char *name, char *value_p
   return changes;
 }
 
+int cfg_key_telemetry_msglog_amqp_port(char *filename, char *name, char *value_ptr)
+{
+  struct plugins_list_entry *list = plugins_list;
+  int value, changes = 0;
+
+  value = atoi(value_ptr);
+  if ((value <= 0) || (value > 65535)) {
+    Log(LOG_ERR, "WARN: [%s] 'telemetry_daemon_msglog_amqp_port' has to be in the range 1-65535.\n", filename);
+    return ERR;
+  }
+
+  for (; list; list = list->next, changes++) list->cfg.telemetry_msglog_amqp_port = value;
+  if (name) Log(LOG_WARNING, "WARN: [%s] plugin name not supported for key 'telemetry_daemon_msglog_amqp_port'. Globalized.\n", filename);
+
+  return changes;
+}
+
 int cfg_key_telemetry_msglog_amqp_vhost(char *filename, char *name, char *value_ptr)
 {
   struct plugins_list_entry *list = plugins_list;
@@ -8508,6 +8610,23 @@ int cfg_key_telemetry_dump_amqp_host(char *filename, char *name, char *value_ptr
 
   for (; list; list = list->next, changes++) list->cfg.telemetry_dump_amqp_host = value_ptr;
   if (name) Log(LOG_WARNING, "WARN: [%s] plugin name not supported for key 'telemetry_dump_amqp_host'. Globalized.\n", filename);
+
+  return changes;
+}
+
+int cfg_key_telemetry_dump_amqp_port(char *filename, char *name, char *value_ptr)
+{
+  struct plugins_list_entry *list = plugins_list;
+  int value, changes = 0;
+
+  value = atoi(value_ptr);
+  if ((value <= 0) || (value > 65535)) {
+    Log(LOG_ERR, "WARN: [%s] 'telemetry_dump_amqp_port' has to be in the range 1-65535.\n", filename);
+    return ERR;
+  }
+
+  for (; list; list = list->next, changes++) list->cfg.telemetry_dump_amqp_port = value;
+  if (name) Log(LOG_WARNING, "WARN: [%s] plugin name not supported for key 'telemetry_dump_amqp_port'. Globalized.\n", filename);
 
   return changes;
 }
