@@ -367,30 +367,32 @@ int bgp_extra_data_process_bmp(struct bgp_msg_extra_data *bmed, struct bgp_info 
 	/* post process copied TLV list */
 	{
 	  struct bmp_log_tlv *tlv = NULL;
-	  int idx, rc, size;
+	  int idx_2, rc, size;
 
 	  size = cdada_list_size(bmed_bmp_dst->tlvs);
-	  for (idx = 0; idx < size; idx++) {
-	    rc = cdada_list_get(bmed_bmp_dst->tlvs, idx, &tlv);
+	  for (idx_2 = 0; idx_2 < size; idx_2++) {
+	    rc = cdada_list_get(bmed_bmp_dst->tlvs, idx_2, &tlv);
 
 	    if (rc != CDADA_SUCCESS || !tlv) {
 	      continue;
 	    }
 
-	    if (tlv->type == BMP_ROUTE_MONITOR_INFO_MARKING) {
-	      /* Remove from the copy of the list of TLVs those that
-		 do not apply to the currently processed NLRI */
-	      if (!bmp_tlv_lookup_nlri(ntohs(tlv->index), (u_int16_t) idx, bmed_bmp_src->groups)) {
-		if (tlv->val) {
-		  free(tlv->val);
-		}
-		free(tlv);
-
-		/* Delete element, read new size, rewind index (as
-		   it will be incremented shortly there-after */
-		cdada_list_erase(bmed_bmp_dst->tlvs, idx);
-		size--; idx--;
+	    /* Remove from the copy of the list of TLVs those that
+	       do not apply to the currently processed NLRI */
+	    if (!bmp_tlv_lookup_nlri(tlv->index, (u_int16_t) idx, bmed_bmp_src->groups)) {
+	      if (tlv->val) {
+		free(tlv->val);
 	      }
+	      free(tlv);
+
+	      /* Delete element, read new size, rewind index (as
+		 it will be incremented shortly there-after */
+	      cdada_list_erase(bmed_bmp_dst->tlvs, idx_2);
+	      size--; idx_2--;
+	    }
+	    else {
+	      Log(LOG_DEBUG, "DEBUG ( %s/%s ): bmp_tlv_lookup_nlri(): tlv_idx=%d nlri_idx=%d\n",
+		  config.name, bmp_misc_db->log_str, tlv->index, idx);
 	    }
 	  }
 	}

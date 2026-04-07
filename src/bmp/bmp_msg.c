@@ -831,7 +831,7 @@ void bmp_process_msg_route_monitor(char **bmp_packet, u_int32_t *len, struct bmp
         exit_gracefully(1);
       }
       else {
-        Log(LOG_DEBUG, "DEBUG ( %s/%s ): [%s] [route monitor] bmp_tlv_list_add(): type=%d len=%d index=%d\n",
+        Log(LOG_DEBUG, "DEBUG ( %s/%s ): [%s] [route monitor] bmp_tlv_list_add(): type=%d len=%d tlv_idx=%d\n",
 	    config.name, bms->log_str, peer->addr_str, bmp_tlv_type, bmp_tlv_len, bmp_tlv_index);
       }
     }
@@ -848,7 +848,7 @@ void bmp_process_msg_route_monitor(char **bmp_packet, u_int32_t *len, struct bmp
     group_tlvs = bmp_tlv_list_find_v2(tlvs, BMP_ROUTE_MONITOR_INFO_GROUP); 
 
     while ((group_tlv = bmp_tlv_list_pop_v2(group_tlvs))) {
-      if (bmp_parse_group_tlv(bmed_bmp.groups, group_tlv->val, group_tlv->len, group_tlv->index) == ERR) {
+      if (bmp_parse_group_tlv(peer, bmed_bmp.groups, group_tlv->val, group_tlv->len, group_tlv->index) == ERR) {
 	cdada_list_destroy(group_tlvs);
         goto exit_lane;
       }
@@ -1382,10 +1382,13 @@ void bmp_groups_destroy(cdada_map_t *groups)
   }
 }
 
-int bmp_parse_group_tlv(cdada_list_t *groups, const char *tlv_buf, u_int16_t tlv_len, u_int16_t index)
+int bmp_parse_group_tlv(struct bgp_peer *peer, cdada_list_t *groups, const char *tlv_buf, u_int16_t tlv_len, u_int16_t index)
 {
+  struct bgp_misc_structs *bms;
   struct bmp_group *group = NULL;
   u_int16_t off, nlri_idx;
+
+  bms = bgp_select_misc_db(peer->type);
 
   /* index is the 2-byte Index field from the Indexed TLV header */
   if (!(index & 0x8000)) {
@@ -1426,9 +1429,15 @@ int bmp_parse_group_tlv(cdada_list_t *groups, const char *tlv_buf, u_int16_t tlv
 
     /* Store, set makes sure no duplicates */
     cdada_set_insert(group->nlris, &nlri_idx);
+
+    Log(LOG_DEBUG, "DEBUG ( %s/%s ): [%s] [Group TLV]: nlri_idx=%d -> group=%d\n",
+	config.name, bms->log_str, peer->addr_str, nlri_idx, index);
   }
 
   cdada_map_insert(groups, &index, &group);
+
+  Log(LOG_DEBUG, "DEBUG ( %s/%s ): [%s] [Group TLV]: group=%d added\n",
+      config.name, bms->log_str, peer->addr_str, index);
 
   return SUCCESS;
 }

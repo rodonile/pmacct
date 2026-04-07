@@ -1,6 +1,6 @@
 /*
     pmacct (Promiscuous mode IP Accounting package)
-    pmacct is Copyright (C) 2003-2024 by Paolo Lucente
+    pmacct is Copyright (C) 2003-2026 by Paolo Lucente
 */
 
 /*
@@ -67,6 +67,6 @@ extern void bmp_stats_cnt_get_afi_safi_data64(char **, u_int32_t *, afi_t *, saf
 extern cdada_map_t *bmp_groups_create();
 extern void bmp_groups_destroy(cdada_map_t *);
 extern void bmp_group_destroy(const cdada_map_t *, const void *, void *, void *);
-extern int bmp_parse_group_tlv(cdada_list_t *, const char *, u_int16_t, u_int16_t);
+extern int bmp_parse_group_tlv(struct bgp_peer *, cdada_list_t *, const char *, u_int16_t, u_int16_t);
 
 #endif //BMP_MSG_H
