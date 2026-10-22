@@ -3602,7 +3602,8 @@ void NF_evaluate_flow_type(struct flow_chars *flow_type, struct template_cache_e
       u_int8_t tun_prot;
       memcpy(&tun_prot, pptrs->f_data+tpl->fld[NF9_L4_PROTOCOL].off[0], 1);
       if (tpl->layers.count > 1) {
-        if (tun_prot == 4 || tun_prot == 41) {
+        /* 4: IPv4, 41: IPv6, 137: MPLS-in-IP (inner IP layer follows the label stack) */
+        if (tun_prot == 4 || tun_prot == 41 || tun_prot == 137) {
           if (tpl->layers.prot[1] == ipv4) {
             /* IPv4 in IPv6 encapsulation */
             ret = PM_FTYPE_SRV6_IPV4;
